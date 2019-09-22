@@ -9,6 +9,10 @@ import android.view.MenuInflater;
 import android.view.LayoutInflater;
 import androidx.fragment.app.Fragment;
 
+/**
+ * The logging feature is currently not implemented.
+ */
+
 public class LogsFragment extends Fragment {
     public LogsFragment() {
         // Required empty public constructor.
