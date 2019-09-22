@@ -22,7 +22,7 @@ public class BLEService extends Service {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGattCallback mGattCallback;
 
-    static final String loggerTag = String.format("BSB :: %s", BLEService.class.getName());
+    static final String sysLogTag = String.format("<BSB :: %s>", BLEService.class.getName());
 
     @Override
     public void onCreate() {
@@ -58,7 +58,7 @@ public class BLEService extends Service {
                             Thread.sleep(Constants.BLE_SERVICE_DELAY_AFTER_CLOSE);
                         }
                         catch (InterruptedException exception) {
-                            Log.e(loggerTag, exception.getMessage());
+                            Log.e(sysLogTag, exception.getMessage());
                         }
                         finally {
                             mSyncSemaphore.release();
@@ -107,7 +107,7 @@ public class BLEService extends Service {
 
                     if (status != BluetoothGatt.GATT_SUCCESS) {
                         Log.e(
-                            loggerTag,
+                                sysLogTag,
                             String.format(
                                 "GATT characteristic write failed with status code: %d",
                                 status
@@ -139,7 +139,7 @@ public class BLEService extends Service {
             mSyncSemaphore.acquire();
         }
         catch (InterruptedException exception) {
-            Log.e(loggerTag, exception.getMessage());
+            Log.e(sysLogTag, exception.getMessage());
 
             stopSelf();
 
