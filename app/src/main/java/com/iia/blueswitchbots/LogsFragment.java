@@ -1,58 +1,46 @@
 package com.iia.blueswitchbots;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-
+import android.content.Context;
+import android.view.MenuInflater;
+import android.view.LayoutInflater;
+import androidx.fragment.app.Fragment;
 
 public class LogsFragment extends Fragment {
-
-    public String name = "Logs";
-
-
-
-
     public LogsFragment() {
-        // Required empty public constructor
+        // Required empty public constructor.
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
 
+        setHasOptionsMenu(true);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        //menu.clear();
-        inflater.inflate(R.menu.menu_fragment_logs, menu);
         super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.menu_fragment_logs, menu);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(
+        LayoutInflater inflater,
+        ViewGroup container,
+        Bundle savedInstanceState
+    )
+    {
         return inflater.inflate(R.layout.fragment_logs, container, false);
     }
-
-
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
     }
 
     @Override
