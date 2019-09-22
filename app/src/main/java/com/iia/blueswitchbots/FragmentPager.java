@@ -14,7 +14,7 @@ public class FragmentPager extends FragmentPagerAdapter {
 
         fragments.add(new BotsFragment());
         fragments.add(new ScanFragment());
-        fragments.add(new LogsFragment());
+        //fragments.add(new LogsFragment());
     }
 
     @Override
@@ -36,8 +36,10 @@ public class FragmentPager extends FragmentPagerAdapter {
             case 1 :
                 return "Scan";
 
+            /*
             case 2 :
                 return "Logs";
+            */
 
             default:
                 return null;
