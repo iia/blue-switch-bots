@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TableRow
+                android:padding="12dp"
+                android:layout_weight="100"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_weight="10"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/ic_blue_switch_bots_24dp" />
+                <LinearLayout
+                    android:layout_weight="60"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/text_view_name"
+                        android:textSize="24dp"
+                        android:text="Bot Name"
+                        android:textStyle="bold"
+                        android:textAlignment="center"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                    <TextView
+                        android:id="@+id/text_view_address"
+                        android:textSize="18dp"
+                        android:text="Bot Address"
+                        android:textAlignment="center"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+                <ImageButton
+                    android:id="@+id/image_button_settings"
+                    android:layout_weight="30"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/ic_bots_list_item_settings_black_24dp" />
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
+
+</RelativeLayout>

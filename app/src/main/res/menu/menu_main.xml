@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_action_toggle_service"
+        app:showAsAction="always"
+        android:orderInCategory="1"
+        android:title="Toggle Service"
+        app:actionViewClass="android.widget.Switch" />
+    <item
+        android:id="@+id/menu_action_about"
+        android:title="About"
+        app:showAsAction="never"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_about_white_24dp" />
+</menu>

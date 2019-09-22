@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name">
+        Blue Switch Bots
+    </string>
+
+    <string name="switch_toggle_service_enabled">
+        Enabled
+    </string>
+
+    <string name="switch_toggle_service_disabled">
+        Disabled
+    </string>
+
+    <string name="dialog_title_about">
+        About
+    </string>
+
+    <string name="dialog_positive_button_ok">
+        OK
+    </string>
+
+    <string name="dialog_title_attention">
+        Attention
+    </string>
+
+    <string name="dialog_message_location_disabled">
+        Location service must be enabled to be able to do Bluetooth Low Energy scan.
+    </string>
+
+    <string name="dialog_message_bluetooth_disabled">
+        Bluetooth must be enabled to be able to use this app.
+    </string>
+
+    <string name="dialog_message_missing_permissions_scan">
+        The following permissions are required to do a Bluetooth Low Energy scan.
+        \n\n1. Bluetooth.\n2. Location.\n\nNext request to grant the missing permissions
+        will be prompted.
+    </string>
+
+    <string name="dialog_message_missing_permissions_main">
+        Since the communication between this app and the bots are Bluetooth Low Energy based and
+        the app works based on SMS notifications hence the following permissions are required to
+        be able to use the app.\n\n1. Bluetooth.\n2. SMS receive and read.\n\nNext request to grant
+        the missing permissions will be prompted.
+    </string>
+
+    <string name="dialog_message_permission_rejected">
+        All the requested permissions must be granted to be able to use the app.\n\nNote that if
+        you have denied a permission with \'Never ask again\' checked then you must change the app\'s
+        permission settings to grant the permissions as in this case the request for the permission
+        will not be prompted anymore.
+    </string>
+
+    <string name="dialog_message_about">
+        This is a hobby project for fun!
+    </string>
+</resources>
