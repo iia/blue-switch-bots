@@ -11,6 +11,7 @@ import android.widget.Switch;
 import android.content.Intent;
 import android.content.Context;
 import androidx.annotation.NonNull;
+import android.content.ComponentName;
 import android.widget.CompoundButton;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -25,7 +26,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.tabs.TabLayout;
 
 public class MainActivity extends AppCompatActivity {
-    private AppCompatActivity mActivity;
     private Context mContext;
     private Permissions mPermissions;
     private ScanFragment mScanFragment;
@@ -33,6 +33,32 @@ public class MainActivity extends AppCompatActivity {
     private Switch mSwitchActionToggleService;
     private BluetoothAdapter mBluetoothAdapter;
     private SharedPreferences.Editor mPrefsAppEditor;
+
+    static final String sysLogTag = String.format("<BSB :: %s>", BLEService.class.getName());
+
+    /**
+     * Enables/disables the SMS broadcast receiver as the service switch is toggled.
+     */
+    private void toggleSMSBroadcastReceiver(Boolean state) {
+        ComponentName componentName =
+            new ComponentName(mContext, SMSBroadcastReceiver.class);
+        PackageManager packageManager = mContext.getPackageManager();
+
+        if (state) {
+            packageManager.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            );
+        }
+        else {
+            packageManager.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+            );
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,21 +70,21 @@ public class MainActivity extends AppCompatActivity {
         mPermissions = new Permissions((Activity) mContext);
 
         FragmentPager fragmentPager =
-                new FragmentPager(getSupportFragmentManager());
+            new FragmentPager(getSupportFragmentManager());
 
         BluetoothManager bluetoothManager =
-                (BluetoothManager) mContext
-                        .getSystemService(Context.BLUETOOTH_SERVICE);
+            (BluetoothManager) mContext
+                .getSystemService(Context.BLUETOOTH_SERVICE);
 
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         mScanFragment =
-                (ScanFragment) fragmentPager
-                        .getItem(Constants.INDEX_PAGER_FRAGMENT_SCAN);
+            (ScanFragment) fragmentPager
+                .getItem(Constants.INDEX_PAGER_FRAGMENT_SCAN);
 
         mPrefsApp =
-                getApplicationContext()
-                        .getSharedPreferences(Constants.TAG_PREFS_APP, MODE_PRIVATE);
+            getApplicationContext()
+                .getSharedPreferences(Constants.TAG_PREFS_APP, MODE_PRIVATE);
 
         mPrefsAppEditor = mPrefsApp.edit();
 
@@ -82,14 +108,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Create a notification channel for major app events.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Notifications";
-            String description = "Application notifications";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
 
             NotificationChannel channel =
-                new NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID_EVENTS, name, importance);
+                new NotificationChannel(
+                    Constants.NOTIFICATION_CHANNEL_ID_EVENTS,
+                    Constants.MAIN_ACTIVITY_NOTIFICATION_CHANNEL_NAME,
+                    importance
+                );
 
-            channel.setDescription(description);
+            channel.setDescription(Constants.MAIN_ACTIVITY_NOTIFICATION_CHANNEL_DESCRIPTION);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
@@ -100,8 +128,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
 
-        Log.d("MainActivity", "onCreateOptionsMenu()");
-
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         Map<String, ?> prefsAppAll = mPrefsApp.getAll();
@@ -109,12 +135,13 @@ public class MainActivity extends AppCompatActivity {
         mSwitchActionToggleService =
             (Switch)menu.findItem(R.id.menu_action_toggle_service).getActionView();
 
-        /*
+        /**
         Preference exists.
 
         We setup the switch according to the saved state.
-        It is important to do this before configuring the switch's state change callback as we
-        don't want to trigger it.
+
+        It is important to do this before configuring the switch's state change callback as we don't
+         want to trigger the callback.
         */
         if (prefsAppAll.containsKey(Constants.TAG_PREFS_APP_STATE_SERVICE)) {
             if (mPrefsApp.getBoolean(Constants.TAG_PREFS_APP_STATE_SERVICE, false)) {
@@ -122,12 +149,14 @@ public class MainActivity extends AppCompatActivity {
                 mPrefsAppEditor.commit();
                 mSwitchActionToggleService.setChecked(true);
                 mSwitchActionToggleService.setText(R.string.switch_toggle_service_enabled);
+                toggleSMSBroadcastReceiver(true);
             }
             else {
                 mPrefsAppEditor.putBoolean(Constants.TAG_PREFS_APP_STATE_SERVICE, false);
                 mPrefsAppEditor.commit();
                 mSwitchActionToggleService.setChecked(false);
                 mSwitchActionToggleService.setText(R.string.switch_toggle_service_disabled);
+                toggleSMSBroadcastReceiver(false);
             }
         }
 
@@ -151,11 +180,13 @@ public class MainActivity extends AppCompatActivity {
                         if (ret == Constants.RETURN_PERMISSIONS_OK) {
                             mSwitchActionToggleService.setChecked(true);
                             compoundButton.setText(R.string.switch_toggle_service_enabled);
+                            toggleSMSBroadcastReceiver(true);
                         }
                     }
                     else {
                         compoundButton.setChecked(false);
                         compoundButton.setText(R.string.switch_toggle_service_disabled);
+                        toggleSMSBroadcastReceiver(false);
                     }
                 }
             }
@@ -175,27 +206,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_action_about:
+            case R.id.menu_action_about: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                 builder
-                    .setCancelable(false)
-                    .setTitle(R.string.dialog_title_about)
-                    .setIcon(R.drawable.ic_about_black_24dp)
-                    .setMessage(R.string.dialog_message_about)
-                    .setPositiveButton(
-                        R.string.dialog_positive_button_ok,
-                        null
-                    );
+                        .setCancelable(false)
+                        .setTitle(R.string.dialog_title_about)
+                        .setIcon(R.drawable.ic_about_black_24dp)
+                        .setMessage(R.string.dialog_message_about)
+                        .setPositiveButton(
+                                R.string.dialog_positive_button_ok,
+                                null
+                        );
 
                 AlertDialog alert = builder.create();
 
                 alert.show();
 
                 return true;
+            }
 
-            default:
+            default: {
                 return super.onOptionsItemSelected(item);
+            }
         }
     }
 
@@ -205,8 +238,6 @@ public class MainActivity extends AppCompatActivity {
         String[] permissions,
         int[] grantResults
     ) {
-        Log.d("MainActivity", String.format("onRequestPermissionsResult() :: requestCode = %d", requestCode));
-
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
@@ -293,10 +324,14 @@ public class MainActivity extends AppCompatActivity {
 
                     alert.show();
                 }
+
+                break;
             }
 
             case Constants.REQUEST_PERMISSIONS_SCAN: {
                 mScanFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+                break;
             }
         }
     }
@@ -341,10 +376,14 @@ public class MainActivity extends AppCompatActivity {
                     mPrefsAppEditor.commit();
                     mSwitchActionToggleService.setChecked(true);
                 }
+
+                break;
             }
 
             case Constants.REQUEST_ENABLE_BLUETOOTH_SCAN: {
                 mScanFragment.onActivityResult(requestCode, resultCode, data);
+
+                break;
             }
         }
     }

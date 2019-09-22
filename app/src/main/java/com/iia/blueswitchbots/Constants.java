@@ -53,4 +53,7 @@ public class Constants {
 
     public static final String BLE_SERVICE_BOT_CONTROL_CHARACTERISTIC =
         "cba20002-224d-11e6-9fb8-0002a5d5c51b";
+
+    public static final CharSequence MAIN_ACTIVITY_NOTIFICATION_CHANNEL_NAME = "Notifications";
+    public static final String MAIN_ACTIVITY_NOTIFICATION_CHANNEL_DESCRIPTION = "Application notifications";
 }
