@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <TableRow
-                android:padding="12dp"
-                android:layout_weight="100"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <ImageView
-                    android:layout_weight="10"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:srcCompat="@drawable/ic_scan_list_item_black_24dp" />
-                <LinearLayout
-                    android:layout_weight="60"
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/text_view_name"
-                        android:textSize="24dp"
-                        android:text="Bot Name"
-                        android:textStyle="bold"
-                        android:textAlignment="center"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                    <TextView
-                        android:id="@+id/text_view_address"
-                        android:textSize="18dp"
-                        android:text="Bot Address"
-                        android:textAlignment="center"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </LinearLayout>
-                <ImageButton
-                    android:id="@+id/image_button_add"
-                    android:layout_weight="30"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:srcCompat="@drawable/ic_scan_list_item_add_black_24dp" />
-            </TableRow>
-        </TableLayout>
-    </LinearLayout>
-</RelativeLayout>
+    <ImageButton
+        android:id="@+id/image_button_add"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="16dp"
+        android:padding="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/text_view_mac"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/edit_text_name"
+        app:srcCompat="@drawable/ic_add_black_24dp" />
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="48dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/text_view_mac"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/edit_text_name"
+        app:srcCompat="@drawable/ic_bluetooth_black_24dp" />
+    <TextView
+        android:id="@+id/text_view_mac"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="Bot MAC"
+        android:textAlignment="center"
+        android:textSize="18dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/image_button_add"
+        app:layout_constraintStart_toEndOf="@+id/imageView3"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_name" />
+    <TextView
+        android:id="@+id/edit_text_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Bot Name"
+        android:textAlignment="center"
+        android:textSize="24dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/image_button_add"
+        app:layout_constraintStart_toEndOf="@+id/imageView3"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

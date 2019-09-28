@@ -1,10 +1,9 @@
 package com.iia.blueswitchbots;
 
+import java.util.ArrayList;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-
-import java.util.ArrayList;
 
 public class FragmentPager extends FragmentPagerAdapter {
     private ArrayList<Fragment> fragments = new ArrayList<>();
@@ -12,9 +11,8 @@ public class FragmentPager extends FragmentPagerAdapter {
     FragmentPager(FragmentManager manager) {
         super(manager);
 
-        fragments.add(new BotsFragment());
-        fragments.add(new ScanFragment());
-        //fragments.add(new LogsFragment());
+        fragments.add(Constants.FRAGMENTS_PAGER_INDEX_BOTS, new BotsFragment());
+        fragments.add(Constants.FRAGMENTS_PAGER_INDEX_SCAN, new ScanFragment());
     }
 
     @Override
@@ -29,20 +27,15 @@ public class FragmentPager extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        switch (position){
-            case 0 :
+        switch (position) {
+            case Constants.FRAGMENTS_PAGER_INDEX_BOTS:
                 return "Bots";
 
-            case 1 :
+            case Constants.FRAGMENTS_PAGER_INDEX_SCAN:
                 return "Scan";
 
-            /*
-            case 2 :
-                return "Logs";
-            */
-
             default:
-                return null;
+                return super.getPageTitle(position);
         }
     }
 }

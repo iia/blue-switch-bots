@@ -14,7 +14,7 @@
             android:id="@+id/image_view_placeholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/ic_scan_black_placeholder_24dp"
+            app:srcCompat="@drawable/ic_scan_placeholder_24dp"
             android:contentDescription="Placeholder image for empty list" />
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"

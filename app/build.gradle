@@ -1,9 +1,9 @@
 apply plugin: 'com.android.application'
 
 android {
-        defaultConfig{
-            vectorDrawables.useSupportLibrary = true
-        }
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.1"
     defaultConfig {

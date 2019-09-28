@@ -1,6 +1,5 @@
 package com.iia.blueswitchbots;
 
-import android.util.Log;
 import android.os.IBinder;
 import android.app.Service;
 import android.content.Intent;
@@ -18,26 +17,19 @@ import android.bluetooth.BluetoothGattCharacteristic;
 public class BLEService extends Service {
     private Context mContext;
     private Semaphore mSyncSemaphore;
-    private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGattCallback mGattCallback;
 
-    static final String sysLogTag = String.format("<BSB :: %s>", BLEService.class.getName());
-
     @Override
     public void onCreate() {
-        // Invoked if there are no existing running instances of the service.
-
         super.onCreate();
 
         mContext = this;
-
-        // Fairness ensures FIFO during contention.
         mSyncSemaphore = new Semaphore(1, true);
-
-        mBluetoothManager =
+        BluetoothManager bluetoothManager =
             (BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
+
+        mBluetoothAdapter = bluetoothManager.getAdapter();
         mGattCallback =
             new BluetoothGattCallback() {
                 @Override
@@ -50,16 +42,10 @@ public class BLEService extends Service {
                     else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                         gatt.close();
 
-                        /**
-                         * The following delay is required so that the connection closing can finish
-                         * before next connection attempt.
-                         */
                         try {
-                            Thread.sleep(Constants.BLE_SERVICE_DELAY_AFTER_CLOSE);
+                            Thread.sleep(Constants.BLE_DELAY_AFTER_CONNECTION_CLOSE);
                         }
-                        catch (InterruptedException exception) {
-                            Log.e(sysLogTag, exception.getMessage());
-                        }
+                        catch (InterruptedException exception) {}
                         finally {
                             mSyncSemaphore.release();
                             stopSelf();
@@ -74,18 +60,19 @@ public class BLEService extends Service {
                     Boolean wrote = false;
 
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        for(BluetoothGattService s : gatt.getServices()) {
+                        for(BluetoothGattService bluetoothGattService : gatt.getServices()) {
                             if (wrote) {
                                 break;
                             }
 
-                            for(BluetoothGattCharacteristic characteristic : s.getCharacteristics()) {
+                            for(BluetoothGattCharacteristic characteristic : bluetoothGattService.getCharacteristics()) {
                                 if (
                                     characteristic.getUuid().toString().equals(
-                                        Constants.BLE_SERVICE_BOT_CONTROL_CHARACTERISTIC
+                                        Constants.BLE_CHARACTERISTIC_BOT_CONTROL
                                     )
-                                ) {
-                                    characteristic.setValue(Constants.BLE_SERVICE_COMMAND_CLICK);
+                                )
+                                {
+                                    characteristic.setValue(Constants.BLE_COMMAND_BOT_CLICK);
                                     gatt.writeCharacteristic(characteristic);
 
                                     wrote = true;
@@ -102,18 +89,11 @@ public class BLEService extends Service {
                     BluetoothGatt gatt,
                     BluetoothGattCharacteristic characteristic,
                     int status
-                ) {
+                )
+                {
                     super.onCharacteristicWrite(gatt, characteristic, status);
 
-                    if (status != BluetoothGatt.GATT_SUCCESS) {
-                        Log.e(
-                                sysLogTag,
-                            String.format(
-                                "GATT characteristic write failed with status code: %d",
-                                status
-                            )
-                        );
-                    }
+                    if (status != BluetoothGatt.GATT_SUCCESS) {}
 
                     gatt.disconnect();
                 }
@@ -121,26 +101,20 @@ public class BLEService extends Service {
     }
 
     @Override
-    public int onStartCommand(final Intent intent, int flags, int startId) {
-        /**
-         * Invoked each time a service is started.
-         *
-         * If there is a running instance of the service then a new object of the class is not
-         * instantiated but this method will be invoked for each service run (when a 'SMS received'
-         * broadcast is received).
-         */
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
         BluetoothDevice bluetoothDevice =
-            mBluetoothAdapter.getRemoteDevice(intent.getStringExtra("MAC"));
+            mBluetoothAdapter.getRemoteDevice(
+                intent.getStringExtra(
+                    Constants.BLE_SERVICE_INTENT_EXTRA_MAC
+                )
+            );
 
         try{
             mSyncSemaphore.acquire();
         }
         catch (InterruptedException exception) {
-            Log.e(sysLogTag, exception.getMessage());
-
             stopSelf();
 
             return Service.START_NOT_STICKY;

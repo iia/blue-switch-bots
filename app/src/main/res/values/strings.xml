@@ -15,12 +15,32 @@
         About
     </string>
 
-    <string name="dialog_positive_button_ok">
+    <string name="dialog_positive_button">
         OK
+    </string>
+
+    <string name="dialog_positive_button_bot_settings">
+        Apply
+    </string>
+
+    <string name="dialog_negative_button">
+        CANCEL
     </string>
 
     <string name="dialog_title_attention">
         Attention
+    </string>
+
+    <string name="dialog_title_bot_settings">
+        Bot Settings
+    </string>
+
+    <string name="dialog_message_bot_remove">
+        Remove this bot?
+    </string>
+
+    <string name="dialog_message_bot_remove_all">
+        Remove all configured bots?
     </string>
 
     <string name="dialog_message_location_disabled">
@@ -31,13 +51,13 @@
         Bluetooth must be enabled to be able to use this app.
     </string>
 
-    <string name="dialog_message_missing_permissions_scan">
+    <string name="dialog_message_missing_permissions_fragment_scan">
         The following permissions are required to do a Bluetooth Low Energy scan.
         \n\n1. Bluetooth.\n2. Location.\n\nNext request to grant the missing permissions
         will be prompted.
     </string>
 
-    <string name="dialog_message_missing_permissions_main">
+    <string name="dialog_message_missing_permissions_activity_main">
         Since the communication between this app and the bots are Bluetooth Low Energy based and
         the app works based on SMS notifications hence the following permissions are required to
         be able to use the app.\n\n1. Bluetooth.\n2. SMS receive and read.\n\nNext request to grant
@@ -51,7 +71,7 @@
         will not be prompted anymore.
     </string>
 
-    <string name="dialog_message_about">
-        This is a hobby project for fun!
+    <string name="dialog_message_bot_exists">
+        The bot is already added and can\'t be added again.
     </string>
 </resources>

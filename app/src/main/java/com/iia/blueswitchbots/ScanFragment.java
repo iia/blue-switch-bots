@@ -1,57 +1,51 @@
 package com.iia.blueswitchbots;
 
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.os.Handler;
-import android.os.ParcelUuid;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.os.Handler;
+import java.util.ArrayList;
+import android.app.Activity;
+import android.os.ParcelUuid;
+import android.view.ViewGroup;
+import android.content.Intent;
+import android.content.Context;
+import android.widget.ImageView;
+import android.view.LayoutInflater;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.content.DialogInterface;
+import android.location.LocationManager;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanSettings;
+import android.content.pm.PackageManager;
+import androidx.appcompat.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class ScanFragment extends Fragment {
-    private  LocationManager mLocationManager;
-    private BluetoothManager mBluetoothManager;
-    private BluetoothAdapter mBluetoothAdapter;
-    private ScanRecyclerAdapter mScanRecyclerAdapter;
     private Permissions mPermissions;
-    private ArrayList<BluetoothDevice>mBluetoothDevices = new ArrayList<>();
-    private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
+    private ScanCallback scanCallbackBLE;
     private ImageView mImageViewPlaceHolder;
+    private  LocationManager mLocationManager;
+    private BluetoothAdapter mBluetoothAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private ScanRecyclerAdapter mScanRecyclerAdapter;
+    private ArrayList<BluetoothDevice> mBluetoothDevices = new ArrayList<>();
 
     private void doScan() {
-        Log.d("ScanFragment", "doSCan()");
-
         mBluetoothDevices.clear();
         mScanRecyclerAdapter.notifyDataSetChanged();
 
@@ -60,7 +54,7 @@ public class ScanFragment extends Fragment {
         ScanFilter.Builder builderScanFilter = new ScanFilter.Builder();
         ScanSettings.Builder builderScanSettings = new ScanSettings.Builder();
         ParcelUuid serviceUUID =
-            new ParcelUuid(UUID.fromString(Constants.UUID_BOT_BLE_SERVICE));
+            new ParcelUuid(UUID.fromString(Constants.BLE_UUID_BOT_SERVICE));
         final BluetoothLeScanner bluetoothLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
         builderScanSettings.setReportDelay(0);
@@ -84,76 +78,36 @@ public class ScanFragment extends Fragment {
                     if (mBluetoothDevices.size() > 0) {
                         mRecyclerView.setVisibility(View.VISIBLE);
                         mImageViewPlaceHolder.setVisibility(View.GONE);
-                        mScanRecyclerAdapter.notifyDataSetChanged();
                     }
                     else {
                         mRecyclerView.setVisibility(View.GONE);
                         mImageViewPlaceHolder.setVisibility(View.VISIBLE);
                     }
+
+                    mScanRecyclerAdapter.notifyDataSetChanged();
                 }
             },
-            Constants.SCAN_DURATION_BLE
+            Constants.BLE_SCAN_DURATION
         );
     }
 
-    private ScanCallback scanCallbackBLE = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-
-            Log.d("TEST", "SCAN FOUND DEVICE");
-
-            addBluetoothDevice(result.getDevice());
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-
-            for(ScanResult result : results){
-                addBluetoothDevice(result.getDevice());
-            }
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Toast.makeText(
-                getContext(),
-                "onScanFailed: " + String.valueOf(errorCode),
-                Toast.LENGTH_LONG
-            ).show();
-        }
-
-        private void addBluetoothDevice(BluetoothDevice device) {
-            Log.d("ScanFragment", "addBluetoothDevice()");
-            if (!mBluetoothDevices.contains(device)) {
-                mBluetoothDevices.add(device);
-            }
-        }
-    };
-
-    // Constructor.
-    public ScanFragment() {}
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mPermissions = new Permissions(getActivity());
-        mLocationManager =
-                (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
-        mBluetoothManager =
-                (BluetoothManager)getContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
+    public ScanFragment() {
+        super();
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Nullable
+    @Override
     public View onCreateView(
-        LayoutInflater inflater,
-        ViewGroup container,
-        Bundle savedInstanceState
-    ) {
+        @NonNull LayoutInflater inflater,
+        @Nullable ViewGroup container,
+        @Nullable Bundle savedInstanceState
+    )
+    {
         return inflater.inflate(R.layout.fragment_scan, container, false);
     }
 
@@ -161,10 +115,43 @@ public class ScanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mPermissions = new Permissions(getActivity());
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         mImageViewPlaceHolder = view.findViewById(R.id.image_view_placeholder);
         mScanRecyclerAdapter = new ScanRecyclerAdapter(getContext(), mBluetoothDevices);
+        BluetoothManager bluetoothManager =
+                (BluetoothManager)getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        mLocationManager = (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
+        scanCallbackBLE = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+
+                addBluetoothDevice(result.getDevice());
+            }
+
+            @Override
+            public void onBatchScanResults(List<ScanResult> results) {
+                super.onBatchScanResults(results);
+
+                for(ScanResult result : results) {
+                    addBluetoothDevice(result.getDevice());
+                }
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+            }
+
+            private void addBluetoothDevice(BluetoothDevice device) {
+                if (!mBluetoothDevices.contains(device)) {
+                    mBluetoothDevices.add(device);
+                }
+            }
+        };
 
         mRecyclerView.addItemDecoration(
             new DividerItemDecoration(
@@ -172,8 +159,8 @@ public class ScanFragment extends Fragment {
                 DividerItemDecoration.VERTICAL
             )
         );
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setAdapter(mScanRecyclerAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         mSwipeRefreshLayout.setOnRefreshListener(
             new SwipeRefreshLayout.OnRefreshListener() {
@@ -181,23 +168,23 @@ public class ScanFragment extends Fragment {
                 public void onRefresh() {
                     mBluetoothDevices.clear();
                     mScanRecyclerAdapter.notifyDataSetChanged();
+
                     mRecyclerView.setVisibility(View.GONE);
                     mImageViewPlaceHolder.setVisibility(View.VISIBLE);
 
                     int ret = mPermissions.enableBluetooth(
-                            Constants.REQUEST_PERMISSIONS_SCAN,
-                            Constants.REQUEST_ENABLE_BLUETOOTH_SCAN
+                        Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN
                     );
 
-                    if (ret == Constants.RETURN_PERMISSIONS_OK) {
+                    if (ret == Constants.PERMISSIONS_REQUEST_RETURN_OK) {
                         doScan();
                     }
-                    else if (ret == Constants.RETURN_PERMISSIONS_LOCATION_DISABLED) {
+                    else if (ret == Constants.PERMISSIONS_REQUEST_RETURN_LOCATION_DISABLED) {
                         mSwipeRefreshLayout.setRefreshing(false);
+
                         mBluetoothDevices.clear();
                         mScanRecyclerAdapter.notifyDataSetChanged();
                     }
-                    else if (ret == Constants.RETURN_PERMISSIONS_WAIT) {}
                 }
             }
         );
@@ -206,59 +193,57 @@ public class ScanFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(
         int requestCode,
-        String[] permissions,
-        int[] grantResults
+        @NonNull String[] permissions,
+        @NonNull int[] grantResults
     ) {
-        Log.d("ScanFragment", "onRequestPermissionsResult()");
-
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case Constants.REQUEST_PERMISSIONS_SCAN: {
+            case Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN: {
                 if (grantResults.length == Constants.PERMISSIONS.size()) {
-                    boolean granted = true;
+                    boolean allGranted = true;
 
                     for (int grantResult : grantResults) {
                         if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                            granted = false;
+                            allGranted = false;
 
                             break;
                         }
                     }
 
-                    if (granted) {
+                    if (allGranted) {
                         if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
                             builder
-                                    .setCancelable(false)
-                                    .setTitle(R.string.dialog_title_attention)
-                                    .setIcon(R.drawable.ic_attention_black_24dp)
-                                    .setMessage(R.string.dialog_message_location_disabled)
-                                    .setPositiveButton(
-                                            R.string.dialog_positive_button_ok,
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    mSwipeRefreshLayout.setRefreshing(false);
-                                                    mBluetoothDevices.clear();
-                                                    mScanRecyclerAdapter.notifyDataSetChanged();
-                                                }
-                                            }
-                                    );
+                                .setCancelable(false)
+                                .setTitle(R.string.dialog_title_attention)
+                                .setIcon(R.drawable.ic_attention_black_24dp)
+                                .setMessage(R.string.dialog_message_location_disabled)
+                                .setPositiveButton(
+                                    R.string.dialog_positive_button,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            mSwipeRefreshLayout.setRefreshing(false);
+
+                                            mBluetoothDevices.clear();
+                                            mScanRecyclerAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+                                );
 
                             AlertDialog alert = builder.create();
-
                             alert.show();
                         }
                         else {
                             if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-                                Intent enableBtIntent =
-                                        new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                                Intent enableBluetoothIntent =
+                                    new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
                                 startActivityForResult(
-                                        enableBtIntent,
-                                        Constants.REQUEST_ENABLE_BLUETOOTH_SCAN
+                                    enableBluetoothIntent,
+                                    Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN
                                 );
                             }
                             else{
@@ -270,26 +255,26 @@ public class ScanFragment extends Fragment {
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
                         builder
-                                .setCancelable(false)
-                                .setTitle(R.string.dialog_title_attention)
-                                .setIcon(R.drawable.ic_attention_black_24dp)
-                                .setMessage(
-                                        R.string.dialog_message_permission_rejected
-                                )
-                                .setPositiveButton(
-                                        R.string.dialog_positive_button_ok,
-                                        new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                mSwipeRefreshLayout.setRefreshing(false);
-                                                mBluetoothDevices.clear();
-                                                mScanRecyclerAdapter.notifyDataSetChanged();
-                                            }
-                                        }
-                                );
+                            .setCancelable(false)
+                            .setTitle(R.string.dialog_title_attention)
+                            .setIcon(R.drawable.ic_attention_black_24dp)
+                            .setMessage(
+                                R.string.dialog_message_permission_rejected
+                            )
+                            .setPositiveButton(
+                                R.string.dialog_positive_button,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        mSwipeRefreshLayout.setRefreshing(false);
+
+                                        mBluetoothDevices.clear();
+                                        mScanRecyclerAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            );
 
                         AlertDialog alert = builder.create();
-
                         alert.show();
                     }
                 }
@@ -297,26 +282,26 @@ public class ScanFragment extends Fragment {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
                     builder
-                            .setCancelable(false)
-                            .setTitle(R.string.dialog_title_attention)
-                            .setIcon(R.drawable.ic_attention_black_24dp)
-                            .setMessage(
-                                    R.string.dialog_message_permission_rejected
-                            )
-                            .setPositiveButton(
-                                    R.string.dialog_positive_button_ok,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            mSwipeRefreshLayout.setRefreshing(false);
-                                            mBluetoothDevices.clear();
-                                            mScanRecyclerAdapter.notifyDataSetChanged();
-                                        }
-                                    }
-                            );
+                        .setCancelable(false)
+                        .setTitle(R.string.dialog_title_attention)
+                        .setIcon(R.drawable.ic_attention_black_24dp)
+                        .setMessage(
+                            R.string.dialog_message_permission_rejected
+                        )
+                        .setPositiveButton(
+                            R.string.dialog_positive_button,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    mSwipeRefreshLayout.setRefreshing(false);
+
+                                    mBluetoothDevices.clear();
+                                    mScanRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        );
 
                     AlertDialog alert = builder.create();
-
                     alert.show();
                 }
             }
@@ -325,34 +310,32 @@ public class ScanFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("ScanFragment", "onActivityResult()");
-
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case Constants.REQUEST_ENABLE_BLUETOOTH_SCAN: {
+        switch(requestCode) {
+            case Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN: {
                 if (resultCode != Activity.RESULT_OK) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
                     builder
-                            .setCancelable(false)
-                            .setTitle(R.string.dialog_title_attention)
-                            .setIcon(R.drawable.ic_attention_black_24dp)
-                            .setMessage(R.string.dialog_message_bluetooth_disabled)
-                            .setPositiveButton(
-                                    R.string.dialog_positive_button_ok,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            mSwipeRefreshLayout.setRefreshing(false);
-                                            mBluetoothDevices.clear();
-                                            mScanRecyclerAdapter.notifyDataSetChanged();
-                                        }
-                                    }
-                            );
+                        .setCancelable(false)
+                        .setTitle(R.string.dialog_title_attention)
+                        .setIcon(R.drawable.ic_attention_black_24dp)
+                        .setMessage(R.string.dialog_message_bluetooth_disabled)
+                        .setPositiveButton(
+                            R.string.dialog_positive_button,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    mSwipeRefreshLayout.setRefreshing(false);
+
+                                    mBluetoothDevices.clear();
+                                    mScanRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        );
 
                     AlertDialog alert = builder.create();
-
                     alert.show();
                 }
                 else {

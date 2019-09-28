@@ -9,13 +9,8 @@ import android.location.LocationManager;
 import android.content.pm.PackageManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
-import android.os.Build;
-import android.util.Log;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-
-import java.util.ArrayList;
 
 public class Permissions {
     private Activity mActivity;
@@ -36,25 +31,21 @@ public class Permissions {
         mBluetoothAdapter = bluetoothManager.getAdapter();
     }
 
-    public int enableBluetooth(final int request_permissions, final int request_enable_bluetooth) {
+    public int enableBluetooth(final int request) {
         Boolean allGranted = true;
 
-        if (request_permissions == Constants.REQUEST_PERMISSIONS_SCAN) {
+        if (request == Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN) {
             if (!Constants.PERMISSIONS.containsKey("ACCESS_FINE_LOCATION")) {
                 Constants.PERMISSIONS.put(
-                        "ACCESS_FINE_LOCATION",
-                        Manifest.permission.ACCESS_FINE_LOCATION
+                    "ACCESS_FINE_LOCATION",
+                    Manifest.permission.ACCESS_FINE_LOCATION
                 );
             }
-
-            Constants.PERMISSIONS_COUNT = Constants.PERMISSIONS.size();
         }
         else {
             if (Constants.PERMISSIONS.containsKey("ACCESS_FINE_LOCATION")) {
                 Constants.PERMISSIONS.remove("ACCESS_FINE_LOCATION");
             }
-
-            Constants.PERMISSIONS_COUNT = Constants.PERMISSIONS.size();
         }
 
         for (String permission : Constants.PERMISSIONS.values()) {
@@ -65,26 +56,25 @@ public class Permissions {
             }
         }
 
-        // Handle missing permissions.
         if (!allGranted) {
-            int dialogMessage = -1;
-
+            int dialogMessageId = -1;
             AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 
-            if (request_permissions == Constants.REQUEST_PERMISSIONS_MAIN) {
-                dialogMessage = R.string.dialog_message_missing_permissions_main;
+            if (request == Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_ACTIVITY_MAIN) {
+                dialogMessageId = R.string.dialog_message_missing_permissions_activity_main;
             }
 
-            if (request_permissions == Constants.REQUEST_PERMISSIONS_SCAN) {
-                dialogMessage = R.string.dialog_message_missing_permissions_scan;
+            if (request == Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN) {
+                dialogMessageId = R.string.dialog_message_missing_permissions_fragment_scan;
             }
+
             builder
                 .setCancelable(false)
+                .setMessage(dialogMessageId)
                 .setTitle(R.string.dialog_title_attention)
-                .setMessage(dialogMessage)
                 .setIcon(R.drawable.ic_attention_black_24dp)
                 .setPositiveButton(
-                    R.string.dialog_positive_button_ok,
+                    R.string.dialog_positive_button,
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
@@ -92,22 +82,19 @@ public class Permissions {
                             final String[] permissions = new String[Constants.PERMISSIONS.size()];
 
                             for (String permission : Constants.PERMISSIONS.values()) {
-                                permissions[i] = permission;
-                                i++;
+                                permissions[i++] = permission;
                             }
 
-                            Log.e("TEST","ABOUT TO ASK PERMS");
-                            mActivity.requestPermissions(permissions, request_permissions);
+                            mActivity.requestPermissions(permissions, request);
                         }
                     }
                 );
 
             AlertDialog alert = builder.create();
-
             alert.show();
         }
         else {
-            if ((request_permissions == Constants.REQUEST_PERMISSIONS_SCAN) &&
+            if ((request == Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN) &&
                 (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 
@@ -117,29 +104,27 @@ public class Permissions {
                     .setIcon(R.drawable.ic_attention_black_24dp)
                     .setMessage(R.string.dialog_message_location_disabled)
                     .setPositiveButton(
-                        R.string.dialog_positive_button_ok,
+                        R.string.dialog_positive_button,
                         null
                     );
 
                 AlertDialog alert = builder.create();
-
                 alert.show();
 
-                return Constants.RETURN_PERMISSIONS_LOCATION_DISABLED;
+                return Constants.PERMISSIONS_REQUEST_RETURN_LOCATION_DISABLED;
             }
             else {
                 if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 
-                    mActivity.startActivityForResult(enableBtIntent, request_enable_bluetooth);
-
+                    mActivity.startActivityForResult(enableBluetoothIntent, request);
                 }
                 else {
-                    return Constants.RETURN_PERMISSIONS_OK;
+                    return Constants.PERMISSIONS_REQUEST_RETURN_OK;
                 }
             }
         }
 
-        return Constants.RETURN_PERMISSIONS_WAIT;
+        return Constants.PERMISSIONS_REQUEST_RETURN_WAIT;
     }
 }

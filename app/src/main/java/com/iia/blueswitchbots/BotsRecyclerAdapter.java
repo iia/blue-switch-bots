@@ -1,74 +1,149 @@
 package com.iia.blueswitchbots;
 
-import android.content.Context;
-import android.view.LayoutInflater;
+import android.content.DialogInterface;
+import android.util.Log;
 import android.view.View;
+import java.util.ArrayList;
 import android.view.ViewGroup;
+import android.content.Context;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ImageButton;
+import android.view.LayoutInflater;
+import androidx.annotation.NonNull;
+import android.content.SharedPreferences;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-
 public class BotsRecyclerAdapter extends RecyclerView.Adapter<BotsRecyclerAdapter.ViewHolder> {
+    private Context mContext;
     private ArrayList<Bot> mData;
     private LayoutInflater mInflater;
-    private ItemClickListener mClickListener;
+    private SharedPreferences mPrefsBots;
+    private FragmentActivity mFragmentActivity;
 
-    // data is passed into the constructor
-    BotsRecyclerAdapter(Context context, ArrayList<Bot> data) {
-        this.mInflater = LayoutInflater.from(context);
-        this.mData = data;
+    BotsRecyclerAdapter(FragmentActivity fragmentActivity, Context context, ArrayList<Bot> data) {
+        mData = data;
+        mContext = context;
+        mInflater = LayoutInflater.from(context);
+        mFragmentActivity = fragmentActivity;
+        mPrefsBots =
+            fragmentActivity.getApplicationContext().getSharedPreferences(
+                Constants.PREFS_TAG_BOTS,
+                context.MODE_PRIVATE
+            );
     }
 
-    // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        // Components of the item view to be updated or manipulated.
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        String key;
+        TextView mac;
         TextView name;
-        TextView description;
+        Boolean isEnabled;
+        ImageButton botDelete;
+        ImageButton botSettings;
+        ImageView imageViewIsEnabled;
 
         ViewHolder(View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.text_view_name);
-            description = itemView.findViewById(R.id.text_view_address);
 
-            itemView.setOnClickListener(this);
+            mac = itemView.findViewById(R.id.text_view_mac);
+            name = itemView.findViewById(R.id.edit_text_name);
+            botDelete = itemView.findViewById(R.id.image_button_delete);
+            botSettings = itemView.findViewById(R.id.image_button_settings);
+            imageViewIsEnabled = itemView.findViewById(R.id.imageView2);
+
+            botSettings.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        DialogFragment botSettingsDialogFragment =
+                            new BotSettingsDialogFragment(
+                                isEnabled,
+                                mac.getText().toString(),
+                                name.getText().toString(),
+                                key
+                            );
+
+                        botSettingsDialogFragment.show(
+                            mFragmentActivity.getSupportFragmentManager(),
+                            Constants.BOTS_TAG_SETTINGS_DIALOG_FRAGMENT
+                        );
+                    }
+                }
+            );
+
+            botDelete.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mPrefsBots.contains(mac.getText().toString())) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+
+                            builder
+                                .setCancelable(false)
+                                .setTitle(R.string.dialog_title_attention)
+                                .setIcon(R.drawable.ic_attention_black_24dp)
+                                .setMessage(R.string.dialog_message_bot_remove)
+                                .setPositiveButton(
+                                    R.string.dialog_positive_button,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            mPrefsBots.edit().remove(mac.getText().toString()).commit();
+                                        }
+                                    }
+                                )
+                                .setNegativeButton(
+                                    R.string.dialog_negative_button,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id) {}
+                                    }
+                                );
+
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                    }
+                }
+            );
         }
-
-        @Override
-        public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
-        }
     }
 
-    // inflates the row layout from xml when needed
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.bots_list_item, parent, false);
-        return new ViewHolder(view);
-    }
-
-    // binds the data to the TextView in each row
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        Bot bot = mData.get(position);
-        holder.name.setText(bot.getmName());
-        holder.description.setText(bot.getmAddress());
-    }
-
-    // total number of rows
     @Override
     public int getItemCount() {
         return mData.size();
     }
 
-    // allows clicks events to be caught
-    void setClickListener(ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = mInflater.inflate(R.layout.bots_list_item, parent, false);
+
+        return new ViewHolder(view);
     }
 
-    // parent activity will implement this method to respond to click events
-    public interface ItemClickListener {
-        void onItemClick(View view, int position);
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Bot bot = mData.get(position);
+
+        holder.key = bot.getKey();
+        holder.mac.setText(bot.getMAC());
+        holder.name.setText(bot.getName());
+        holder.isEnabled = bot.getIsEnabled();
+
+        if (holder.isEnabled) {
+            holder.imageViewIsEnabled.setImageResource(
+                R.drawable.ic_blue_switch_bots_24dp
+            );
+        }
+        else {
+            holder.imageViewIsEnabled.setImageResource(
+                R.drawable.ic_blue_switch_bots_disabled_24dp
+            );
+        }
     }
 }
