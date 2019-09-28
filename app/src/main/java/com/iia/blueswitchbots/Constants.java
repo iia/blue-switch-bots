@@ -22,6 +22,9 @@ import android.Manifest;
 import androidx.collection.ArrayMap;
 
 public class Constants {
+    // Instance states.
+    public static final String INSTANCE_STATE_SAVE_KEY_SCANNED_MACS = "SCANNED_MACS";
+
     // Fragments.
     public static final int FRAGMENTS_PAGER_INDEX_BOTS = 0;
     public static final int FRAGMENTS_PAGER_INDEX_SCAN = 1;

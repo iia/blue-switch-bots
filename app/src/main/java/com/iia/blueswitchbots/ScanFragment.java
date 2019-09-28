@@ -21,7 +21,6 @@ package com.iia.blueswitchbots;
 import java.util.List;
 import java.util.UUID;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.os.Handler;
 import java.util.ArrayList;
@@ -56,15 +55,15 @@ public class ScanFragment extends Fragment {
     private Permissions mPermissions;
     private RecyclerView mRecyclerView;
     private ScanCallback scanCallbackBLE;
+    private ArrayList<String> mScannedMacs;
     private ImageView mImageViewPlaceHolder;
     private  LocationManager mLocationManager;
     private BluetoothAdapter mBluetoothAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ScanRecyclerAdapter mScanRecyclerAdapter;
-    private ArrayList<BluetoothDevice> mBluetoothDevices = new ArrayList<>();
 
     private void doScan() {
-        mBluetoothDevices.clear();
+        mScannedMacs.clear();
         mScanRecyclerAdapter.notifyDataSetChanged();
 
         Handler handler = new Handler();
@@ -93,7 +92,7 @@ public class ScanFragment extends Fragment {
 
                     mSwipeRefreshLayout.setRefreshing(false);
 
-                    if (mBluetoothDevices.size() > 0) {
+                    if (mScannedMacs.size() > 0) {
                         mRecyclerView.setVisibility(View.VISIBLE);
                         mImageViewPlaceHolder.setVisibility(View.GONE);
                     }
@@ -133,11 +132,12 @@ public class ScanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mScannedMacs = new ArrayList<>();
         mPermissions = new Permissions(getActivity());
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         mImageViewPlaceHolder = view.findViewById(R.id.image_view_placeholder);
-        mScanRecyclerAdapter = new ScanRecyclerAdapter(getContext(), mBluetoothDevices);
+        mScanRecyclerAdapter = new ScanRecyclerAdapter(getContext(), mScannedMacs);
         BluetoothManager bluetoothManager =
                 (BluetoothManager)getContext().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -165,8 +165,8 @@ public class ScanFragment extends Fragment {
             }
 
             private void addBluetoothDevice(BluetoothDevice device) {
-                if (!mBluetoothDevices.contains(device)) {
-                    mBluetoothDevices.add(device);
+                if (!mScannedMacs.contains(device.getAddress())) {
+                    mScannedMacs.add(device.getAddress());
                 }
             }
         };
@@ -184,7 +184,7 @@ public class ScanFragment extends Fragment {
             new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    mBluetoothDevices.clear();
+                    mScannedMacs.clear();
                     mScanRecyclerAdapter.notifyDataSetChanged();
 
                     mRecyclerView.setVisibility(View.GONE);
@@ -200,7 +200,7 @@ public class ScanFragment extends Fragment {
                     else if (ret == Constants.PERMISSIONS_REQUEST_RETURN_LOCATION_DISABLED) {
                         mSwipeRefreshLayout.setRefreshing(false);
 
-                        mBluetoothDevices.clear();
+                        mScannedMacs.clear();
                         mScanRecyclerAdapter.notifyDataSetChanged();
                     }
                 }
@@ -245,7 +245,7 @@ public class ScanFragment extends Fragment {
                                         public void onClick(DialogInterface dialog, int id) {
                                             mSwipeRefreshLayout.setRefreshing(false);
 
-                                            mBluetoothDevices.clear();
+                                            mScannedMacs.clear();
                                             mScanRecyclerAdapter.notifyDataSetChanged();
                                         }
                                     }
@@ -286,7 +286,7 @@ public class ScanFragment extends Fragment {
                                     public void onClick(DialogInterface dialog, int id) {
                                         mSwipeRefreshLayout.setRefreshing(false);
 
-                                        mBluetoothDevices.clear();
+                                        mScannedMacs.clear();
                                         mScanRecyclerAdapter.notifyDataSetChanged();
                                     }
                                 }
@@ -313,7 +313,7 @@ public class ScanFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int id) {
                                     mSwipeRefreshLayout.setRefreshing(false);
 
-                                    mBluetoothDevices.clear();
+                                    mScannedMacs.clear();
                                     mScanRecyclerAdapter.notifyDataSetChanged();
                                 }
                             }
@@ -347,7 +347,7 @@ public class ScanFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int id) {
                                     mSwipeRefreshLayout.setRefreshing(false);
 
-                                    mBluetoothDevices.clear();
+                                    mScannedMacs.clear();
                                     mScanRecyclerAdapter.notifyDataSetChanged();
                                 }
                             }
@@ -361,5 +361,46 @@ public class ScanFragment extends Fragment {
                 }
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putStringArrayList(Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS, mScannedMacs);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        mScannedMacs.clear();
+        ArrayList<String> scannedMacs;
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS)) {
+                scannedMacs =
+                    savedInstanceState.getStringArrayList(
+                        Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS
+                    );
+
+                if (scannedMacs.size() > 0) {
+                    for (String scannedMac : scannedMacs) {
+                        mScannedMacs.add(scannedMac);
+                    }
+                }
+            }
+        }
+
+        if (mScannedMacs.size() > 0) {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mImageViewPlaceHolder.setVisibility(View.GONE);
+        }
+        else {
+            mRecyclerView.setVisibility(View.GONE);
+            mImageViewPlaceHolder.setVisibility(View.VISIBLE);
+        }
+
+        mScanRecyclerAdapter.notifyDataSetChanged();
     }
 }

@@ -31,18 +31,17 @@ import android.widget.TextView;
 import android.widget.ImageButton;
 import android.view.LayoutInflater;
 import androidx.annotation.NonNull;
-import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ScanRecyclerAdapter extends RecyclerView.Adapter<ScanRecyclerAdapter.ViewHolder> {
     private Context mContext;
+    private ArrayList<String> mData;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefsBots;
-    private ArrayList<BluetoothDevice> mData;
 
-    ScanRecyclerAdapter(Context context, ArrayList<BluetoothDevice> data) {
+    ScanRecyclerAdapter(Context context, ArrayList<String> data) {
         mData = data;
         mContext = context;
         mInflater = LayoutInflater.from(context);
@@ -116,8 +115,6 @@ public class ScanRecyclerAdapter extends RecyclerView.Adapter<ScanRecyclerAdapte
                                 jsonObject.toString()
                             ).commit();
 
-                            Log.e("ScanRecyclerAdapter", String.format("ADDING BOT = %s", jsonObject.toString()));
-
                             Toast.makeText(
                                 mContext,
                                 String.format("Added Bot: %s", name.getText()),
@@ -145,9 +142,9 @@ public class ScanRecyclerAdapter extends RecyclerView.Adapter<ScanRecyclerAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        BluetoothDevice device = mData.get(position);
+        String deviceMac = mData.get(position);
 
-        holder.mac.setText(device.getAddress());
+        holder.mac.setText(deviceMac);
         holder.name.setText(
             TextUtils.concat(
                 "Bot-",
