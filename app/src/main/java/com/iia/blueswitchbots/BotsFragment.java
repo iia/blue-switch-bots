@@ -228,6 +228,10 @@ public class BotsFragment extends Fragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_action_remove_all_bots: {
+                if (mPrefsBots.getAll().size() < 1) {
+                    return true;
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
                 builder
