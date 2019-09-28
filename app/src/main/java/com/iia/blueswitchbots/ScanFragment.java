@@ -367,7 +367,7 @@ public class ScanFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putStringArrayList(Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS, mScannedMacs);
+        outState.putStringArrayList(Constants.INSTANCE_STATE_SAVE_KEY_SCAN_MACS, mScannedMacs);
     }
 
     @Override
@@ -378,10 +378,10 @@ public class ScanFragment extends Fragment {
         ArrayList<String> scannedMacs;
 
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey(Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS)) {
+            if (savedInstanceState.containsKey(Constants.INSTANCE_STATE_SAVE_KEY_SCAN_MACS)) {
                 scannedMacs =
                     savedInstanceState.getStringArrayList(
-                        Constants.INSTANCE_STATE_SAVE_KEY_SCANNED_MACS
+                        Constants.INSTANCE_STATE_SAVE_KEY_SCAN_MACS
                     );
 
                 if (scannedMacs.size() > 0) {
