@@ -77,13 +77,15 @@ public class BotsRecyclerAdapter extends RecyclerView.Adapter<BotsRecyclerAdapte
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        DialogFragment botSettingsDialogFragment =
-                            new BotSettingsDialogFragment(
-                                isEnabled,
-                                mac.getText().toString(),
-                                name.getText().toString(),
-                                key
-                            );
+                        BotSettingsDialogFragment botSettingsDialogFragment =
+                            new BotSettingsDialogFragment();
+
+                        botSettingsDialogFragment.setProperties(
+                            isEnabled,
+                            mac.getText().toString(),
+                            name.getText().toString(),
+                            key
+                        );
 
                         botSettingsDialogFragment.show(
                             mFragmentActivity.getSupportFragmentManager(),

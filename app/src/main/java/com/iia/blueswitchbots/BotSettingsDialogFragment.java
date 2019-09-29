@@ -23,7 +23,6 @@ import android.view.View;
 import android.app.Dialog;
 import org.json.JSONObject;
 import org.json.JSONException;
-import android.content.Context;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -39,35 +38,36 @@ public class BotSettingsDialogFragment extends DialogFragment {
     private String mBotName;
     private Boolean mIsEnabled;
 
-    public BotSettingsDialogFragment(
-        Boolean isEnabled,
-        String botMAC,
-        String botName,
-        String botKey
-    )
-    {
-        super();
+    public BotSettingsDialogFragment() { super(); }
 
+    public void setProperties(Boolean isEnabled, String botMAC, String botName, String botKey) {
         mBotMAC = botMAC;
         mBotKey = botKey;
         mBotName = botName;
         mIsEnabled = isEnabled;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        AlertDialog alertDialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        if (mBotMAC == null) {
+            mBotMAC = "" ;
+        }
+
+        if (mBotKey == null) {
+            mBotKey = "";
+        }
+
+        if (mBotName == null) {
+            mBotName = "";
+        }
+
+        if (mIsEnabled == null) {
+            mIsEnabled = false;
+        }
 
         View dialogView =
             getActivity().getLayoutInflater().inflate(R.layout.fragment_bot_settings,null);
@@ -136,6 +136,9 @@ public class BotSettingsDialogFragment extends DialogFragment {
                 }
             );
 
-        return builder.create();
+        alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(false);
+
+        return alertDialog;
     }
 }
