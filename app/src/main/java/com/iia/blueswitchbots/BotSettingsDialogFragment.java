@@ -40,7 +40,15 @@ public class BotSettingsDialogFragment extends DialogFragment {
 
     public BotSettingsDialogFragment() { super(); }
 
-    public void setProperties(Boolean isEnabled, String botMAC, String botName, String botKey) {
+    public BotSettingsDialogFragment(
+        Boolean isEnabled,
+        String botMAC,
+        String botName,
+        String botKey
+    )
+    {
+        super();
+
         mBotMAC = botMAC;
         mBotKey = botKey;
         mBotName = botName;
