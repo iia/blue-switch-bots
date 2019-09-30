@@ -23,7 +23,7 @@ import androidx.collection.ArrayMap;
 
 public class Constants {
     // Instance states.
-    public static final String INSTANCE_STATE_SAVE_KEY_SCAN_RESULTS = "SCAN_RESULTS";
+    public static final String INSTANCE_STATE_KEY_SCAN_RESULTS = "SCAN_RESULTS";
 
     // Fragments.
     public static final int FRAGMENTS_PAGER_INDEX_BOTS = 0;
