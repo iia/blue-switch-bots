@@ -61,22 +61,6 @@ public class BotSettingsDialogFragment extends DialogFragment {
         AlertDialog alertDialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        if (mBotMAC == null) {
-            mBotMAC = "" ;
-        }
-
-        if (mBotKey == null) {
-            mBotKey = "";
-        }
-
-        if (mBotName == null) {
-            mBotName = "";
-        }
-
-        if (mIsEnabled == null) {
-            mIsEnabled = false;
-        }
-
         View dialogView =
             getActivity().getLayoutInflater().inflate(R.layout.fragment_bot_settings,null);
 
@@ -148,5 +132,17 @@ public class BotSettingsDialogFragment extends DialogFragment {
         alertDialog.setCanceledOnTouchOutside(false);
 
         return alertDialog;
+    }
+
+    @Override
+    public void onDestroyView() {
+        // Quick dirty fix of this issue, https://code.google.com/p/android/issues/detail?id=17423
+        Dialog dialog = getDialog();
+
+        if (dialog != null && getRetainInstance()) {
+            dialog.setDismissMessage(null);
+        }
+
+        super.onDestroyView();
     }
 }

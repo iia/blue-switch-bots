@@ -85,6 +85,8 @@ public class BotsRecyclerAdapter extends RecyclerView.Adapter<BotsRecyclerAdapte
                                 key
                             );
 
+                        botSettingsDialogFragment.setRetainInstance(true);
+
                         botSettingsDialogFragment.show(
                             mFragmentActivity.getSupportFragmentManager(),
                             Constants.BOTS_TAG_SETTINGS_DIALOG_FRAGMENT
