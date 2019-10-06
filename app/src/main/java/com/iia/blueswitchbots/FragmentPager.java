@@ -29,8 +29,8 @@ public class FragmentPager extends FragmentPagerAdapter {
     FragmentPager(FragmentManager manager) {
         super(manager);
 
-        fragments.add(Constants.FRAGMENTS_PAGER_INDEX_BOTS, new BotsFragment());
-        fragments.add(Constants.FRAGMENTS_PAGER_INDEX_SCAN, new ScanFragment());
+        fragments.add(Constants.FRAGMENT_PAGER_INDEX_BOTS, new BotsFragment());
+        fragments.add(Constants.FRAGMENT_PAGER_INDEX_SCAN, new ScanFragment());
     }
 
     @Override
@@ -46,11 +46,11 @@ public class FragmentPager extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         switch (position) {
-            case Constants.FRAGMENTS_PAGER_INDEX_BOTS:
-                return "Bots";
+            case 0:
+                return Constants.FRAGMENT_PAGER_TITLE_BOTS;
 
-            case Constants.FRAGMENTS_PAGER_INDEX_SCAN:
-                return "Scan";
+            case 1:
+                return Constants.FRAGMENT_PAGER_TITLE_SCAN;
 
             default:
                 return super.getPageTitle(position);

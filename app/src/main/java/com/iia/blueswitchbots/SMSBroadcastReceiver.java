@@ -33,55 +33,68 @@ import java.util.concurrent.atomic.AtomicInteger;
 import androidx.core.app.NotificationManagerCompat;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
-    static AtomicInteger notificationUniqueId = new AtomicInteger(1);
+    static final AtomicInteger notificationUniqueId = new AtomicInteger(1);
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent intentNotification = new Intent(context, MainActivity.class);
 
+        SmsMessage[] smsMessages =
+            Telephony.Sms.Intents.getMessagesFromIntent(intent);
+
         PendingIntent pendingIntent =
             PendingIntent.getActivity(context, 0, intentNotification, 0);
 
-        SmsMessage[] smsMessages =
-            Telephony.Sms.Intents.getMessagesFromIntent(intent);
+        intentNotification.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         for(SmsMessage smsMessage : smsMessages) {
             String botMAC = null;
             String botName = null;
+            Boolean isEnabled = false;
             Boolean keyMatched = false;
-            Boolean botIsEnabled = true;
+
             SharedPreferences prefsBots =
                 context.getApplicationContext().getSharedPreferences(
-                    Constants.PREFS_TAG_BOTS,
+                    Constants.SHARED_PREFERENCES_TAG_BOTS,
                     context.MODE_PRIVATE
                 );
+
             String smsBody = smsMessage.getMessageBody();
             Map<String, ?> prefsBotsAll = prefsBots.getAll();
             String smsNumber = smsMessage.getOriginatingAddress();
 
             if (!smsBody.startsWith(Constants.SMS_PREFIX_KEY)) {
-                break;
+                continue;
             }
 
             String[] smsKey = smsBody.split(Constants.SMS_PREFIX_KEY);
 
             if (smsKey.length != 2) {
-                break;
+                continue;
             }
 
             for (String key : prefsBotsAll.keySet()) {
-                String value = prefsBotsAll.get(key).toString();
-
                 try {
+                    String value = prefsBotsAll.get(key).toString();
                     JSONObject jsonObject = new JSONObject(value);
 
-                    if (smsKey[1].equals(jsonObject.getString(Constants.PREFS_TAG_BOTS_JSON_KEY_KEY))) {
+                    if (smsKey[1].equals(
+                            jsonObject.getString(Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_KEY)
+                        )
+                    )
+                    {
                         botMAC = key;
                         keyMatched = true;
-                        botName = jsonObject.getString(Constants.PREFS_TAG_BOTS_JSON_KEY_NAME);
 
-                        botIsEnabled =
-                            jsonObject.getBoolean(Constants.PREFS_TAG_BOTS_JSON_KEY_IS_ENABLED);
+                        botName =
+                            jsonObject.getString(
+                                Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_NAME
+                            );
+
+                        isEnabled =
+                            jsonObject.getBoolean(
+                                    Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_IS_ENABLED
+                            );
 
                         break;
                     }
@@ -89,64 +102,58 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
                 catch (JSONException exception) {}
             }
 
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-            if (keyMatched) {
-                if (botIsEnabled) {
-                    NotificationCompat.Builder builderNotification =
-                        new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
-                            .setAutoCancel(true)
-                            .setContentIntent(pendingIntent)
-                            .setContentTitle("Bot Clicking")
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                            .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
-                            .setStyle(
-                                new NotificationCompat.BigTextStyle().bigText(
-                                        String.format("%s clicked by %s.", botName, smsNumber)
-                                )
-                            );
-
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                    notificationManager.notify(notificationUniqueId.getAndIncrement(), builderNotification.build());
-
-                    Intent i= new Intent(context, BLEService.class);
-                    i.putExtra(Constants.BLE_SERVICE_INTENT_EXTRA_MAC, botMAC);
-                    context.startService(i);
-                }
-                else {
-                    NotificationCompat.Builder builderNotification =
-                        new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
-                            .setAutoCancel(true)
-                            .setContentIntent(pendingIntent)
-                            .setContentTitle("Bot Disabled")
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                            .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
-                            .setStyle(
-                                new NotificationCompat.BigTextStyle().bigText(
-                                        String.format("%s is currently disabled. Click attempted by %s.", botName, smsNumber)
-                                )
-                            );
-
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                    notificationManager.notify(notificationUniqueId.getAndIncrement(), builderNotification.build());
-                }
-            }
-            else {
+            if (keyMatched && isEnabled) {
                 NotificationCompat.Builder builderNotification =
                     new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
                         .setAutoCancel(true)
                         .setContentIntent(pendingIntent)
-                        .setContentTitle("Wrong Key")
+                        .setContentTitle("Bot Clicking")
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
                         .setStyle(
                             new NotificationCompat.BigTextStyle().bigText(
-                                String.format("Attempt with wrong key by %s.", smsNumber)
+                                String.format("%s clicked by %s.", botName, smsNumber)
                             )
                         );
 
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                notificationManager.notify(notificationUniqueId.getAndIncrement(), builderNotification.build());
+                NotificationManagerCompat notificationManager =
+                    NotificationManagerCompat.from(context);
+
+                notificationManager.notify(
+                    notificationUniqueId.getAndIncrement(),
+                    builderNotification.build()
+                );
+
+                Intent i= new Intent(context, BLEService.class);
+                i.putExtra(Constants.BLE_SERVICE_INTENT_EXTRA_MAC, botMAC);
+
+                context.startService(i);
+            }
+            else if (keyMatched && !isEnabled) {
+                NotificationCompat.Builder builderNotification =
+                    new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
+                        .setAutoCancel(true)
+                        .setContentIntent(pendingIntent)
+                        .setContentTitle("Bot Disabled")
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
+                        .setStyle(
+                            new NotificationCompat.BigTextStyle().bigText(
+                                String.format(
+                                    "Click attempt by %s but %s is disabled.",
+                                    smsNumber,
+                                    botName
+                                )
+                            )
+                        );
+
+                NotificationManagerCompat notificationManager =
+                    NotificationManagerCompat.from(context);
+
+                notificationManager.notify(
+                    notificationUniqueId.getAndIncrement(),
+                    builderNotification.build()
+                );
             }
         }
     }

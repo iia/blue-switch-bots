@@ -44,10 +44,12 @@ public class BLEService extends Service {
 
         mContext = this;
         mSyncSemaphore = new Semaphore(1, true);
+
         BluetoothManager bluetoothManager =
             (BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE);
 
         mBluetoothAdapter = bluetoothManager.getAdapter();
+
         mGattCallback =
             new BluetoothGattCallback() {
                 @Override
@@ -61,12 +63,11 @@ public class BLEService extends Service {
                         gatt.close();
 
                         try {
-                            Thread.sleep(Constants.BLE_DELAY_AFTER_CONNECTION_CLOSE);
+                            Thread.sleep(Constants.BLE_DELAY_CONNECTION_CLOSE_AFTER);
                         }
                         catch (InterruptedException exception) {}
                         finally {
                             mSyncSemaphore.release();
-                            stopSelf();
                         }
                     }
                 }
@@ -86,7 +87,7 @@ public class BLEService extends Service {
                             for(BluetoothGattCharacteristic characteristic : bluetoothGattService.getCharacteristics()) {
                                 if (
                                     characteristic.getUuid().toString().equals(
-                                        Constants.BLE_CHARACTERISTIC_BOT_CONTROL
+                                        Constants.BLE_UUID_CHARACTERISTIC_BOT_CONTROL
                                     )
                                 )
                                 {
@@ -111,8 +112,6 @@ public class BLEService extends Service {
                 {
                     super.onCharacteristicWrite(gatt, characteristic, status);
 
-                    if (status != BluetoothGatt.GATT_SUCCESS) {}
-
                     gatt.disconnect();
                 }
             };
@@ -124,12 +123,10 @@ public class BLEService extends Service {
 
         BluetoothDevice bluetoothDevice =
             mBluetoothAdapter.getRemoteDevice(
-                intent.getStringExtra(
-                    Constants.BLE_SERVICE_INTENT_EXTRA_MAC
-                )
+                intent.getStringExtra(Constants.BLE_SERVICE_INTENT_EXTRA_MAC)
             );
 
-        try{
+        try {
             mSyncSemaphore.acquire();
         }
         catch (InterruptedException exception) {

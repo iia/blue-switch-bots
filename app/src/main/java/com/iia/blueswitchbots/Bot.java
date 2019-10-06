@@ -31,35 +31,35 @@ public class Bot {
         mIsEnabled = isEnabled;
     }
 
-    public void setKey(String key) {
-        mKey = key;
-    }
-
-    public void setName(String name) {
-        mName = name;
-    }
-
-    public void setMAC(String mac) {
-        mMac = mac;
-    }
-
-    public void setIsEnabled(Boolean isEnabled) {
-        mIsEnabled = isEnabled;
-    }
-
     public String getKey() {
         return mKey;
+    }
+
+    public String getMac() {
+        return mMac;
     }
 
     public String getName() {
         return mName;
     }
 
-    public String getMAC() {
-        return mMac;
-    }
-
     public Boolean getIsEnabled() {
         return mIsEnabled;
+    }
+
+    public void setKey(String key) {
+        mKey = key;
+    }
+
+    public void setMac(String mac) {
+        mMac = mac;
+    }
+
+    public void setName(String name) {
+        mName = name;
+    }
+
+    public void setIsEnabled(Boolean isEnabled) {
+        mIsEnabled = isEnabled;
     }
 }

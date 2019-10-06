@@ -18,114 +18,96 @@
 
 package com.iia.blueswitchbots;
 
-import android.content.DialogInterface;
-import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 import android.view.ViewGroup;
 import android.content.Context;
-import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.ImageButton;
 import android.view.LayoutInflater;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import android.content.SharedPreferences;
-
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class BotsRecyclerAdapter extends RecyclerView.Adapter<BotsRecyclerAdapter.ViewHolder> {
     private Context mContext;
+    private Fragment mFragment;
     private ArrayList<Bot> mData;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefsBots;
     private FragmentActivity mFragmentActivity;
 
-    BotsRecyclerAdapter(FragmentActivity fragmentActivity, Context context, ArrayList<Bot> data) {
+    BotsRecyclerAdapter(
+        Context context, Fragment fragment, FragmentActivity fragmentActivity, ArrayList<Bot> data
+    )
+    {
         mData = data;
         mContext = context;
-        mInflater = LayoutInflater.from(context);
+        mFragment = fragment;
         mFragmentActivity = fragmentActivity;
+        mInflater = LayoutInflater.from(context);
         mPrefsBots =
             fragmentActivity.getApplicationContext().getSharedPreferences(
-                Constants.PREFS_TAG_BOTS,
+                Constants.SHARED_PREFERENCES_TAG_BOTS,
                 context.MODE_PRIVATE
             );
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         String key;
-        TextView mac;
-        TextView name;
         Boolean isEnabled;
-        ImageButton botDelete;
-        ImageButton botSettings;
+        TextView textViewMac;
+        TextView textViewName;
         ImageView imageViewIsEnabled;
+        ImageButton imageButtonBotDelete;
+        ImageButton imageButtonBotSettings;
 
         ViewHolder(View itemView) {
             super(itemView);
 
-            mac = itemView.findViewById(R.id.text_view_mac);
-            name = itemView.findViewById(R.id.edit_text_name);
-            botDelete = itemView.findViewById(R.id.image_button_delete);
-            botSettings = itemView.findViewById(R.id.image_button_settings);
-            imageViewIsEnabled = itemView.findViewById(R.id.imageView2);
+            textViewMac = itemView.findViewById(R.id.text_view_mac);
+            textViewName = itemView.findViewById(R.id.text_view_name);
+            imageViewIsEnabled = itemView.findViewById(R.id.image_view_is_enabled);
+            imageButtonBotDelete = itemView.findViewById(R.id.image_button_delete);
+            imageButtonBotSettings = itemView.findViewById(R.id.image_button_settings);
 
-            botSettings.setOnClickListener(
+            imageButtonBotSettings.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        BotSettingsDialogFragment botSettingsDialogFragment =
-                            new BotSettingsDialogFragment(
-                                isEnabled,
-                                mac.getText().toString(),
-                                name.getText().toString(),
-                                key
+                        AlertDialog dialog =
+                            ((BotsFragment) mFragment).getDialogBotSettings(
+                                mContext,
+                                mFragmentActivity,
+                                textViewMac.getText().toString(),
+                                ""
                             );
 
-                        botSettingsDialogFragment.setRetainInstance(true);
+                        dialog.show();
 
-                        botSettingsDialogFragment.show(
-                            mFragmentActivity.getSupportFragmentManager(),
-                            Constants.BOTS_TAG_SETTINGS_DIALOG_FRAGMENT
-                        );
+                        ((BotsFragment) mFragment).setIsDialogOnScreenBotSettings(true);
                     }
                 }
             );
 
-            botDelete.setOnClickListener(
+            imageButtonBotDelete.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if (mPrefsBots.contains(mac.getText().toString())) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-
-                            builder
-                                .setCancelable(false)
-                                .setTitle(R.string.dialog_title_attention)
-                                .setIcon(R.drawable.ic_attention_black_24dp)
-                                .setMessage(R.string.dialog_message_bot_remove)
-                                .setPositiveButton(
-                                    R.string.dialog_positive_button,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            mPrefsBots.edit().remove(mac.getText().toString()).commit();
-                                        }
-                                    }
-                                )
-                                .setNegativeButton(
-                                    R.string.dialog_negative_button,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {}
-                                    }
+                        if (mPrefsBots.contains(textViewMac.getText().toString())) {
+                            AlertDialog dialog =
+                                ((BotsFragment) mFragment).getDialogBotRemove(
+                                    mContext,
+                                    textViewMac.getText().toString()
                                 );
 
-                            AlertDialog alert = builder.create();
-                            alert.show();
+                            dialog.show();
+
+                            ((BotsFragment) mFragment).setIsDialogOnScreenBotRemove(true);
                         }
                     }
                 }
@@ -151,9 +133,9 @@ public class BotsRecyclerAdapter extends RecyclerView.Adapter<BotsRecyclerAdapte
         Bot bot = mData.get(position);
 
         holder.key = bot.getKey();
-        holder.mac.setText(bot.getMAC());
-        holder.name.setText(bot.getName());
         holder.isEnabled = bot.getIsEnabled();
+        holder.textViewMac.setText(bot.getMac());
+        holder.textViewName.setText(bot.getName());
 
         if (holder.isEnabled) {
             holder.imageViewIsEnabled.setImageResource(

@@ -18,13 +18,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    tools:context=".BotSettingsDialogFragment">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <CheckBox
         android:id="@+id/check_box_is_enabled"
         android:layout_width="0dp"
@@ -46,7 +45,7 @@
         android:ems="10"
         android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView4"
+        app:layout_constraintStart_toEndOf="@+id/text_view_label_bot"
         app:layout_constraintTop_toBottomOf="@+id/text_view_mac" />
     <EditText
         android:id="@+id/edit_text_key"
@@ -60,21 +59,21 @@
         android:inputType="textPassword"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/text_view_key"
+        app:layout_constraintStart_toEndOf="@+id/text_view_label_key"
         app:layout_constraintTop_toBottomOf="@+id/edit_text_name" />
     <TextView
-        android:id="@+id/text_view_key"
+        android:id="@+id/text_view_label_key"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:text="Key:"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/edit_text_key"
-        app:layout_constraintEnd_toEndOf="@+id/textView4"
+        app:layout_constraintEnd_toEndOf="@+id/text_view_label_bot"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/edit_text_key" />
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/text_view_label_bot"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -84,14 +83,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/edit_text_name" />
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/text_view_label_mac"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:text="MAC:"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/text_view_mac"
-        app:layout_constraintEnd_toEndOf="@+id/textView4"
+        app:layout_constraintEnd_toEndOf="@+id/text_view_label_bot"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/text_view_mac" />
     <TextView
@@ -102,6 +101,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="32dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintStart_toEndOf="@+id/text_view_label_mac"
         app:layout_constraintTop_toBottomOf="@+id/check_box_is_enabled" />
 </androidx.constraintlayout.widget.ConstraintLayout>

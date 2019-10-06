@@ -18,9 +18,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <ImageButton
@@ -31,16 +31,16 @@
         android:padding="32dp"
         app:layout_constraintBottom_toBottomOf="@+id/text_view_mac"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/edit_text_name"
+        app:layout_constraintTop_toTopOf="@+id/text_view_name"
         app:srcCompat="@drawable/ic_add_black_24dp" />
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/image_view_icon"
         android:layout_width="48dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="@+id/text_view_mac"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/edit_text_name"
+        app:layout_constraintTop_toTopOf="@+id/text_view_name"
         app:srcCompat="@drawable/ic_bluetooth_black_24dp" />
     <TextView
         android:id="@+id/text_view_mac"
@@ -55,20 +55,20 @@
         android:singleLine="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/image_button_add"
-        app:layout_constraintStart_toEndOf="@+id/imageView3"
-        app:layout_constraintTop_toBottomOf="@+id/edit_text_name" />
+        app:layout_constraintStart_toEndOf="@+id/image_view_icon"
+        app:layout_constraintTop_toBottomOf="@+id/text_view_name" />
     <TextView
-        android:id="@+id/edit_text_name"
+        android:id="@+id/text_view_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
         android:text="Bot Name"
         android:textAlignment="center"
         android:textSize="24dp"
-        android:scrollHorizontally="true"
-        android:singleLine="true"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/image_button_add"
-        app:layout_constraintStart_toEndOf="@+id/imageView3"
+        app:layout_constraintStart_toEndOf="@+id/image_view_icon"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

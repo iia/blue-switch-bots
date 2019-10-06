@@ -34,6 +34,7 @@ import android.view.LayoutInflater;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import android.content.pm.ActivityInfo;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.DialogInterface;
@@ -52,27 +53,165 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class ScanFragment extends Fragment {
-    private Permissions mPermissions;
+    private Environment mEnvironment;
     private RecyclerView mRecyclerView;
     private ScanCallback scanCallbackBLE;
-    private ArrayList<String> mScannedMacs;
+    private ArrayList<String> mScanResults;
     private ImageView mImageViewPlaceHolder;
-    private  LocationManager mLocationManager;
+    private LocationManager mLocationManager;
     private BluetoothAdapter mBluetoothAdapter;
+    private Boolean mIsDialogOnScreenBotExists;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private Intent intentRequestBluetoothActivation;
     private ScanRecyclerAdapter mScanRecyclerAdapter;
+    private Boolean mIsDialogOnScreenDisabledLocation;
+    private Boolean mIsDialogOnScreenDisabledBluetooth;
+    private Boolean mIsDialogOnScreenPermissionsRejected;
 
-    private void doScan() {
-        mScannedMacs.clear();
+    private void clearScan() {
+        mSwipeRefreshLayout.setRefreshing(false);
+
+        mScanResults.clear();
         mScanRecyclerAdapter.notifyDataSetChanged();
 
+        mRecyclerView.setVisibility(View.GONE);
+        mImageViewPlaceHolder.setVisibility(View.VISIBLE);
+    }
+
+    public void setIsDialogOnScreenBotExists(Boolean isDialogOnScreenBotExists) {
+        mIsDialogOnScreenBotExists = isDialogOnScreenBotExists;
+    }
+
+    public Boolean getIsDialogOnScreenBotExists() {
+        return mIsDialogOnScreenBotExists;
+    }
+
+    public AlertDialog getDialogBotExists(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder
+            .setCancelable(false)
+            .setTitle(R.string.title_dialog_attention)
+            .setIcon(R.drawable.ic_attention_black_24dp)
+            .setMessage(R.string.message_dialog_bot_exists)
+            .setPositiveButton(
+                R.string.label_dialog_button_positive,
+                null
+            )
+            .setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        mIsDialogOnScreenBotExists = false;
+                    }
+                }
+            );
+
+        return builder.create();
+    }
+
+    private AlertDialog getDialogDisabledLocation(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder
+            .setCancelable(false)
+            .setTitle(R.string.title_dialog_attention)
+            .setIcon(R.drawable.ic_attention_black_24dp)
+            .setMessage(R.string.message_dialog_disabled_location)
+            .setPositiveButton(
+                R.string.label_dialog_button_positive,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        clearScan();
+                    }
+                }
+            )
+            .setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        mIsDialogOnScreenDisabledLocation = false;
+                    }
+                }
+            );
+
+        return builder.create();
+    }
+
+    private AlertDialog getDialogPermissionsRejected(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder
+            .setCancelable(false)
+            .setTitle(R.string.title_dialog_attention)
+            .setIcon(R.drawable.ic_attention_black_24dp)
+            .setMessage(R.string.message_dialog_permissions_rejected_fragment_scan)
+            .setPositiveButton(
+                R.string.label_dialog_button_positive,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        clearScan();
+                    }
+                }
+            )
+            .setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        mIsDialogOnScreenPermissionsRejected = false;
+                    }
+                }
+            );
+
+        return builder.create();
+    }
+
+    private AlertDialog getDialogDisabledBluetooth(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder
+            .setCancelable(false)
+            .setTitle(R.string.title_dialog_attention)
+            .setIcon(R.drawable.ic_attention_black_24dp)
+            .setMessage(R.string.message_dialog_disabled_bluetooth)
+            .setPositiveButton(
+                R.string.label_dialog_button_positive,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        clearScan();
+                    }
+                }
+            )
+            .setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        mIsDialogOnScreenDisabledBluetooth = false;
+                    }
+                }
+            );
+
+        return builder.create();
+    }
+
+    private void doScan() {
         Handler handler = new Handler();
         ArrayList<ScanFilter> scanFilters = new ArrayList<>();
         ScanFilter.Builder builderScanFilter = new ScanFilter.Builder();
         ScanSettings.Builder builderScanSettings = new ScanSettings.Builder();
+
         ParcelUuid serviceUUID =
-            new ParcelUuid(UUID.fromString(Constants.BLE_UUID_BOT_SERVICE));
+            new ParcelUuid(UUID.fromString(Constants.BLE_UUID_SERVICE_BOT));
+
         final BluetoothLeScanner bluetoothLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
+
+        mScanResults.clear();
+        mScanRecyclerAdapter.notifyDataSetChanged();
+
+        mSwipeRefreshLayout.setRefreshing(true);
 
         builderScanSettings.setReportDelay(0);
         builderScanSettings.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
@@ -90,31 +229,25 @@ public class ScanFragment extends Fragment {
                         bluetoothLEScanner.stopScan(scanCallbackBLE);
                     }
 
-                    mSwipeRefreshLayout.setRefreshing(false);
+                    if (mScanResults.size() > 0) {
+                        mSwipeRefreshLayout.setRefreshing(false);
 
-                    if (mScannedMacs.size() > 0) {
                         mRecyclerView.setVisibility(View.VISIBLE);
                         mImageViewPlaceHolder.setVisibility(View.GONE);
+
+                        mScanRecyclerAdapter.notifyDataSetChanged();
                     }
                     else {
-                        mRecyclerView.setVisibility(View.GONE);
-                        mImageViewPlaceHolder.setVisibility(View.VISIBLE);
+                        clearScan();
                     }
-
-                    mScanRecyclerAdapter.notifyDataSetChanged();
                 }
             },
-            Constants.BLE_SCAN_DURATION
+            Constants.BLE_DURATION_SCAN
         );
     }
 
     public ScanFragment() {
         super();
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Nullable
@@ -132,16 +265,29 @@ public class ScanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mScannedMacs = new ArrayList<>();
-        mPermissions = new Permissions(getActivity());
+        mScanResults = new ArrayList<>();
+        mIsDialogOnScreenBotExists = false;
+        mIsDialogOnScreenDisabledLocation = false;
+        mIsDialogOnScreenDisabledBluetooth = false;
+        mIsDialogOnScreenPermissionsRejected = false;
+        mEnvironment = new Environment(getActivity());
         mRecyclerView = view.findViewById(R.id.recycler_view);
+
+        intentRequestBluetoothActivation =
+                new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
         mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         mImageViewPlaceHolder = view.findViewById(R.id.image_view_placeholder);
-        mScanRecyclerAdapter = new ScanRecyclerAdapter(getContext(), mScannedMacs);
+
+        mScanRecyclerAdapter =
+            new ScanRecyclerAdapter(getContext(), this, mScanResults);
+
         BluetoothManager bluetoothManager =
-                (BluetoothManager)getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            (BluetoothManager)getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mLocationManager = (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
+
         scanCallbackBLE = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -165,8 +311,8 @@ public class ScanFragment extends Fragment {
             }
 
             private void addBluetoothDevice(BluetoothDevice device) {
-                if (!mScannedMacs.contains(device.getAddress())) {
-                    mScannedMacs.add(device.getAddress());
+                if (!mScanResults.contains(device.getAddress())) {
+                    mScanResults.add(device.getAddress());
                 }
             }
         };
@@ -177,6 +323,7 @@ public class ScanFragment extends Fragment {
                 DividerItemDecoration.VERTICAL
             )
         );
+
         mRecyclerView.setAdapter(mScanRecyclerAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -184,24 +331,41 @@ public class ScanFragment extends Fragment {
             new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    mScannedMacs.clear();
-                    mScanRecyclerAdapter.notifyDataSetChanged();
+                    clearScan();
 
-                    mRecyclerView.setVisibility(View.GONE);
-                    mImageViewPlaceHolder.setVisibility(View.VISIBLE);
+                    int ret = mEnvironment.check(Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN);
 
-                    int ret = mPermissions.enableBluetooth(
-                        Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN
-                    );
+                    if (ret == Constants.ENVIRONMENT_CHECK_REQUEST_RETURN_PERMISSIONS_REQUEST) {
+                        int i = 0;
+                        final String[] permissions =
+                            new String[Constants.PERMISSIONS_SCAN.size()];
 
-                    if (ret == Constants.PERMISSIONS_REQUEST_RETURN_OK) {
-                        doScan();
+                        for (String permission : Constants.PERMISSIONS_SCAN.values()) {
+                            permissions[i++] = permission;
+                        }
+
+                        requestPermissions(
+                            permissions,
+                            Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN
+                        );
                     }
-                    else if (ret == Constants.PERMISSIONS_REQUEST_RETURN_LOCATION_DISABLED) {
-                        mSwipeRefreshLayout.setRefreshing(false);
+                    else if (ret == Constants.ENVIRONMENT_CHECK_REQUEST_RETURN_DISABLED_BLUETOOTH) {
+                        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 
-                        mScannedMacs.clear();
-                        mScanRecyclerAdapter.notifyDataSetChanged();
+                        startActivityForResult(
+                            intentRequestBluetoothActivation,
+                            Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN
+                        );
+                    }
+                    else if (ret == Constants.ENVIRONMENT_CHECK_REQUEST_RETURN_DISABLED_LOCATION) {
+                        AlertDialog dialog = getDialogDisabledLocation(getContext());
+
+                        dialog.show();
+
+                        mIsDialogOnScreenDisabledLocation = true;
+                    }
+                    else if (ret == Constants.ENVIRONMENT_CHECK_REQUEST_RETURN_OK) {
+                        doScan();
                     }
                 }
             }
@@ -216,112 +380,43 @@ public class ScanFragment extends Fragment {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN: {
-                if (grantResults.length == Constants.PERMISSIONS.size()) {
-                    boolean allGranted = true;
+        if (requestCode == Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN) {
+            boolean allGranted = true;
 
-                    for (int grantResult : grantResults) {
-                        if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                            allGranted = false;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
 
-                            break;
-                        }
-                    }
+                    break;
+                }
+            }
 
-                    if (allGranted) {
-                        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            if (allGranted) {
+                if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 
-                            builder
-                                .setCancelable(false)
-                                .setTitle(R.string.dialog_title_attention)
-                                .setIcon(R.drawable.ic_attention_black_24dp)
-                                .setMessage(R.string.dialog_message_location_disabled)
-                                .setPositiveButton(
-                                    R.string.dialog_positive_button,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            mSwipeRefreshLayout.setRefreshing(false);
+                    startActivityForResult(
+                            intentRequestBluetoothActivation,
+                            Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN
+                    );
+                }
+                else if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    AlertDialog dialog = getDialogDisabledLocation(getContext());
 
-                                            mScannedMacs.clear();
-                                            mScanRecyclerAdapter.notifyDataSetChanged();
-                                        }
-                                    }
-                                );
+                    dialog.show();
 
-                            AlertDialog alert = builder.create();
-                            alert.show();
-                        }
-                        else {
-                            if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-                                Intent enableBluetoothIntent =
-                                    new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-
-                                startActivityForResult(
-                                    enableBluetoothIntent,
-                                    Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN
-                                );
-                            }
-                            else{
-                                doScan();
-                            }
-                        }
-                    }
-                    else {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-
-                        builder
-                            .setCancelable(false)
-                            .setTitle(R.string.dialog_title_attention)
-                            .setIcon(R.drawable.ic_attention_black_24dp)
-                            .setMessage(
-                                R.string.dialog_message_permission_rejected
-                            )
-                            .setPositiveButton(
-                                R.string.dialog_positive_button,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        mSwipeRefreshLayout.setRefreshing(false);
-
-                                        mScannedMacs.clear();
-                                        mScanRecyclerAdapter.notifyDataSetChanged();
-                                    }
-                                }
-                            );
-
-                        AlertDialog alert = builder.create();
-                        alert.show();
-                    }
+                    mIsDialogOnScreenDisabledLocation = true;
                 }
                 else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-
-                    builder
-                        .setCancelable(false)
-                        .setTitle(R.string.dialog_title_attention)
-                        .setIcon(R.drawable.ic_attention_black_24dp)
-                        .setMessage(
-                            R.string.dialog_message_permission_rejected
-                        )
-                        .setPositiveButton(
-                            R.string.dialog_positive_button,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id) {
-                                    mSwipeRefreshLayout.setRefreshing(false);
-
-                                    mScannedMacs.clear();
-                                    mScanRecyclerAdapter.notifyDataSetChanged();
-                                }
-                            }
-                        );
-
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                    doScan();
                 }
+            }
+            else {
+                AlertDialog dialog = getDialogPermissionsRejected(getContext());
+
+                dialog.show();
+
+                mIsDialogOnScreenPermissionsRejected = true;
             }
         }
     }
@@ -330,35 +425,42 @@ public class ScanFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch(requestCode) {
-            case Constants.PERMISSIONS_REQUEST_ENABLE_BLUETOOTH_FRAGMENT_SCAN: {
-                if (resultCode != Activity.RESULT_OK) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        /**
+         * While starting Bluetooth activation intent activity, screen rotation is disabled.
+         * Screen rotation is restored again in this callback.
+         *
+         * This hack is required because of an Android bug. This bug causes the intent activities
+         * to stack up each time the screen it rotated. But during screen rotation objects are
+         * destroyed and recreated. As a result only one of the stacked activity's result callback
+         * is called.
+         *
+         * This results in multiple taps on the activity's buttons and only one responding to it.
+         *
+         * Bug reports:
+         *
+         * https://issuetracker.google.com/issues/36979302
+         * https://issuetracker.google.com/issues/37114831
+         * https://issuetracker.google.com/issues/36939494
+         */
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
-                    builder
-                        .setCancelable(false)
-                        .setTitle(R.string.dialog_title_attention)
-                        .setIcon(R.drawable.ic_attention_black_24dp)
-                        .setMessage(R.string.dialog_message_bluetooth_disabled)
-                        .setPositiveButton(
-                            R.string.dialog_positive_button,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id) {
-                                    mSwipeRefreshLayout.setRefreshing(false);
+        if (requestCode == Constants.ENVIRONMENT_CHECK_REQUEST_FRAGMENT_SCAN) {
+            if (resultCode != Activity.RESULT_OK) {
+                AlertDialog dialog = getDialogDisabledBluetooth(getContext());
 
-                                    mScannedMacs.clear();
-                                    mScanRecyclerAdapter.notifyDataSetChanged();
-                                }
-                            }
-                        );
+                dialog.show();
 
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
-                else {
-                    doScan();
-                }
+                mIsDialogOnScreenDisabledBluetooth = true;
+            }
+            else if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                AlertDialog dialog = getDialogDisabledLocation(getContext());
+
+                dialog.show();
+
+                mIsDialogOnScreenDisabledLocation = true;
+            }
+            else {
+                doScan();
             }
         }
     }
@@ -367,40 +469,132 @@ public class ScanFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putStringArrayList(Constants.INSTANCE_STATE_KEY_SCAN_RESULTS, mScannedMacs);
+        outState.putBoolean(
+            Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_BOT_EXISTS,
+            mIsDialogOnScreenBotExists
+        );
+
+        outState.putBoolean(
+            Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_LOCATION,
+            mIsDialogOnScreenDisabledLocation
+        );
+
+        outState.putBoolean(
+            Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_BLUETOOTH,
+            mIsDialogOnScreenDisabledBluetooth
+        );
+
+        outState.putBoolean(
+            Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_PERMISSIONS_REJECTED,
+            mIsDialogOnScreenPermissionsRejected
+        );
+
+        outState.putStringArrayList(Constants.INSTANCE_STATE_KEY_RESULTS_SCAN, mScanResults);
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        mScannedMacs.clear();
-        ArrayList<String> scannedMacs;
+        mScanResults.clear();
+        ArrayList<String> scanResults;
 
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey(Constants.INSTANCE_STATE_KEY_SCAN_RESULTS)) {
-                scannedMacs =
-                    savedInstanceState.getStringArrayList(
-                        Constants.INSTANCE_STATE_KEY_SCAN_RESULTS
+            if (
+                savedInstanceState.containsKey(
+                    Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_BOT_EXISTS
+                )
+            )
+            {
+                mIsDialogOnScreenBotExists =
+                    savedInstanceState.getBoolean(
+                        Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_BOT_EXISTS
                     );
 
-                if (scannedMacs.size() > 0) {
-                    for (String scannedMac : scannedMacs) {
-                        mScannedMacs.add(scannedMac);
-                    }
+                if (mIsDialogOnScreenBotExists) {
+                    AlertDialog dialog = getDialogBotExists(getContext());
+
+                    dialog.show();
                 }
             }
-        }
 
-        if (mScannedMacs.size() > 0) {
-            mRecyclerView.setVisibility(View.VISIBLE);
-            mImageViewPlaceHolder.setVisibility(View.GONE);
-        }
-        else {
-            mRecyclerView.setVisibility(View.GONE);
-            mImageViewPlaceHolder.setVisibility(View.VISIBLE);
-        }
+            if (
+                savedInstanceState.containsKey(
+                    Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_LOCATION
+                )
+            )
+            {
+                mIsDialogOnScreenDisabledLocation =
+                    savedInstanceState.getBoolean(
+                        Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_LOCATION
+                    );
 
-        mScanRecyclerAdapter.notifyDataSetChanged();
+                if (mIsDialogOnScreenDisabledLocation) {
+                    AlertDialog dialog = getDialogDisabledLocation(getContext());
+
+                    dialog.show();
+                }
+            }
+
+            if (
+                savedInstanceState.containsKey(
+                    Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_BLUETOOTH
+                )
+            )
+            {
+                mIsDialogOnScreenDisabledBluetooth =
+                    savedInstanceState.getBoolean(
+                        Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_DISABLED_BLUETOOTH
+                    );
+
+                if (mIsDialogOnScreenDisabledBluetooth) {
+                    AlertDialog dialog = getDialogDisabledBluetooth(getContext());
+
+                    dialog.show();
+                }
+            }
+
+            if (
+                savedInstanceState.containsKey(
+                    Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_PERMISSIONS_REJECTED
+                )
+            )
+            {
+                mIsDialogOnScreenPermissionsRejected =
+                    savedInstanceState.getBoolean(
+                        Constants.INSTANCE_STATE_KEY_DIALOG_ON_SCREEN_PERMISSIONS_REJECTED
+                    );
+
+                if (mIsDialogOnScreenPermissionsRejected) {
+                    AlertDialog dialog = getDialogPermissionsRejected(getContext());
+
+                    dialog.show();
+                }
+            }
+
+            if (savedInstanceState.containsKey(Constants.INSTANCE_STATE_KEY_RESULTS_SCAN)) {
+                scanResults =
+                    savedInstanceState.getStringArrayList(
+                        Constants.INSTANCE_STATE_KEY_RESULTS_SCAN
+                    );
+
+                if (scanResults.size() > 0) {
+                    for (String scanResult : scanResults) {
+                        mScanResults.add(scanResult);
+                    }
+                }
+
+                if (mScanResults.size() > 0) {
+                    mRecyclerView.setVisibility(View.VISIBLE);
+                    mImageViewPlaceHolder.setVisibility(View.GONE);
+                }
+                else {
+                    mRecyclerView.setVisibility(View.GONE);
+                    mImageViewPlaceHolder.setVisibility(View.VISIBLE);
+                }
+
+                mScanRecyclerAdapter.notifyDataSetChanged();
+            }
+        }
     }
 }

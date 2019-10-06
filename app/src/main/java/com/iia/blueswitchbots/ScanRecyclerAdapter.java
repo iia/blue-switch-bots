@@ -18,7 +18,6 @@
 
 package com.iia.blueswitchbots;
 
-import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 import org.json.JSONObject;
@@ -31,93 +30,91 @@ import android.widget.TextView;
 import android.widget.ImageButton;
 import android.view.LayoutInflater;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ScanRecyclerAdapter extends RecyclerView.Adapter<ScanRecyclerAdapter.ViewHolder> {
     private Context mContext;
+    private Fragment mFragment;
     private ArrayList<String> mData;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefsBots;
 
-    ScanRecyclerAdapter(Context context, ArrayList<String> data) {
+    ScanRecyclerAdapter(Context context, Fragment fragment, ArrayList<String> data) {
         mData = data;
         mContext = context;
+        mFragment = fragment;
         mInflater = LayoutInflater.from(context);
+
         mPrefsBots =
             context.getApplicationContext().getSharedPreferences(
-                Constants.PREFS_TAG_BOTS,
+                Constants.SHARED_PREFERENCES_TAG_BOTS,
                 context.MODE_PRIVATE
             );
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView mac;
-        TextView name;
-        ImageButton addBot;
+        TextView textViewMac;
+        TextView textViewName;
+        ImageButton imageButtonAddBot;
 
         ViewHolder(View itemView) {
             super(itemView);
 
-            mac = itemView.findViewById(R.id.text_view_mac);
-            name = itemView.findViewById(R.id.edit_text_name);
-            addBot = itemView.findViewById(R.id.image_button_add);
+            textViewMac = itemView.findViewById(R.id.text_view_mac);
+            textViewName = itemView.findViewById(R.id.text_view_name);
+            imageButtonAddBot = itemView.findViewById(R.id.image_button_add);
 
-            addBot.setOnClickListener(
+            imageButtonAddBot.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(mPrefsBots.contains(mac.getText().toString())) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                        if(mPrefsBots.contains(textViewMac.getText().toString())) {
+                            if (!((ScanFragment) mFragment).getIsDialogOnScreenBotExists()) {
+                                AlertDialog dialog =
+                                    ((ScanFragment) mFragment).getDialogBotExists(mContext);
 
-                            builder
-                                .setCancelable(false)
-                                .setTitle(R.string.dialog_title_attention)
-                                .setIcon(R.drawable.ic_attention_black_24dp)
-                                .setMessage(R.string.dialog_message_bot_exists)
-                                .setPositiveButton(
-                                    R.string.dialog_positive_button,
-                                    null
-                                );
+                                dialog.show();
 
-                            AlertDialog alert = builder.create();
-                            alert.show();
+                                ((ScanFragment) mFragment).setIsDialogOnScreenBotExists(true);
+                            }
                         }
                         else {
                             JSONObject jsonObject = new JSONObject();
 
                             try {
                                 jsonObject.put(
-                                    Constants.PREFS_TAG_BOTS_JSON_KEY_KEY,
+                                    Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_KEY,
                                     new String()
                                 );
 
                                 jsonObject.put(
-                                        Constants.PREFS_TAG_BOTS_JSON_KEY_MAC,
-                                        mac.getText().toString()
+                                        Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_NAME,
+                                        textViewName.getText()
                                 );
 
                                 jsonObject.put(
-                                    Constants.PREFS_TAG_BOTS_JSON_KEY_NAME,
-                                    name.getText()
+                                        Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_MAC,
+                                        textViewMac.getText().toString()
                                 );
 
                                 jsonObject.put(
-                                    Constants.PREFS_TAG_BOTS_JSON_KEY_IS_ENABLED,
+                                    Constants.SHARED_PREFERENCES_TAG_BOTS_KEY_JSON_IS_ENABLED,
                                     new Boolean(false)
                                 );
                             }
                             catch (JSONException exception) {}
 
                             mPrefsBots.edit().putString(
-                                mac.getText().toString(),
+                                textViewMac.getText().toString(),
                                 jsonObject.toString()
                             ).commit();
 
                             Toast.makeText(
                                 mContext,
-                                String.format("Added Bot: %s", name.getText()),
+                                String.format("Added Bot: %s", textViewName.getText()),
                                 Toast.LENGTH_SHORT
                             ).show();
                         }
@@ -144,11 +141,11 @@ public class ScanRecyclerAdapter extends RecyclerView.Adapter<ScanRecyclerAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String deviceMac = mData.get(position);
 
-        holder.mac.setText(deviceMac);
-        holder.name.setText(
+        holder.textViewMac.setText(deviceMac);
+        holder.textViewName.setText(
             TextUtils.concat(
                 "Bot-",
-                holder.mac.getText().toString().replace(":",""))
+                holder.textViewMac.getText().toString().replace(":",""))
         );
     }
 }
