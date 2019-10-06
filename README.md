@@ -1,6 +1,6 @@
 <p align="center">
     <img
-        width="30%"
+        width="25%"
         style="text-align: center;"
         src=".github/res/img/blue_switch_bots.png" />
 </p>
