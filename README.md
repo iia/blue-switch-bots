@@ -1,1 +1,1 @@
-# blue-switch-bots
+# Blue Switch Bots
