@@ -9,7 +9,7 @@
 
 Blue Switch Bots is an Android app that aims to extend the usage of [SwitchBots](https://www.switch-bot.com/bot).
 
-This app clicks a SwitchBot if the phone that has this app installed receives a SMS with a secret key configured for that SwitchBot. Naturally to click the SwitchBot the phone must be within the Bluetooth range of the SwitchBot.
+This app controls a SwitchBot if the phone that has this app installed receives a SMS with a key configured for that SwitchBot by the app. Naturally to control the SwitchBot the phone must be within the Bluetooth range of the SwitchBot.
 
 ---
 
