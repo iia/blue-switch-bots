@@ -60,7 +60,7 @@ public class BLEService extends Service {
                         gatt.discoverServices();
                     }
                     else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                        gatt.close();
+                        gatt.abortReliableWrite();
 
                         try {
                             Thread.sleep(Constants.BLE_DELAY_CONNECTION_CLOSE_AFTER);
@@ -111,6 +111,18 @@ public class BLEService extends Service {
                 )
                 {
                     super.onCharacteristicWrite(gatt, characteristic, status);
+
+                    if (characteristic.getValue().equals(Constants.BLE_COMMAND_BOT_CLICK)) {
+                        gatt.executeReliableWrite();
+                    }
+                    else {
+                        gatt.disconnect();
+                    }
+                }
+
+                @Override
+                public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+                    super.onReliableWriteCompleted(gatt, status);
 
                     gatt.disconnect();
                 }
