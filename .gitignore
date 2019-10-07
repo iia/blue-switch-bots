@@ -1,3 +1,7 @@
+app/release/*
+app/debug/*
+app/build/*
+build/*
 .gradle/*
 .idea/*
 *.iml
