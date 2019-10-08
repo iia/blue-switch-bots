@@ -61,6 +61,7 @@ public class BLEService extends Service {
                     }
                     else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                         gatt.abortReliableWrite();
+                        gatt.close();
 
                         try {
                             Thread.sleep(Constants.BLE_DELAY_CONNECTION_CLOSE_AFTER);
