@@ -1,7 +1,8 @@
-app/release/*
-app/debug/*
-app/build/*
+*.iml
+*.idea
+.idea/*
 build/*
 .gradle/*
-.idea/*
-*.iml
+app/debug/*
+app/build/*
+app/release/*
