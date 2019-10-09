@@ -20,7 +20,6 @@ package com.iia.blueswitchbots;
 
 import java.util.Map;
 import android.os.Build;
-import android.util.Log;
 import android.os.Bundle;
 import android.view.Menu;
 import android.app.Activity;

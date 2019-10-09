@@ -28,6 +28,8 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.content.SharedPreferences;
 import android.content.BroadcastReceiver;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import androidx.core.app.NotificationCompat;
 import java.util.concurrent.atomic.AtomicInteger;
 import androidx.core.app.NotificationManagerCompat;
@@ -103,18 +105,53 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
             }
 
             if (keyMatched && isEnabled) {
-                NotificationCompat.Builder builderNotification =
-                    new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
-                        .setAutoCancel(true)
-                        .setContentIntent(pendingIntent)
-                        .setContentTitle("Bot Clicking")
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                        .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
-                        .setStyle(
-                            new NotificationCompat.BigTextStyle().bigText(
-                                String.format("%s clicked by %s.", botName, smsNumber)
-                            )
-                        );
+                NotificationCompat.Builder builderNotification;
+
+                BluetoothManager bluetoothManager =
+                    (BluetoothManager) context.getSystemService(
+                        Context.BLUETOOTH_SERVICE
+                    );
+
+                BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+
+                if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+                    builderNotification =
+                        new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
+                            .setAutoCancel(true)
+                            .setContentIntent(pendingIntent)
+                            .setContentTitle("Bluetooth Disabled")
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
+                            .setStyle(
+                                new NotificationCompat.BigTextStyle().bigText(
+                                    String.format(
+                                        "Click attempt by %s on %s but Bluetooth is currently disabled.",
+                                        smsNumber,
+                                        botName
+                                    )
+                                )
+                            );
+                }
+                else {
+                    builderNotification =
+                        new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
+                            .setAutoCancel(true)
+                            .setContentIntent(pendingIntent)
+                            .setContentTitle("Bot Clicked")
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setSmallIcon(R.drawable.ic_blue_switch_bots_24dp)
+                            .setStyle(
+                                new NotificationCompat.BigTextStyle().bigText(
+                                    String.format("%s clicked by %s.", botName, smsNumber)
+                                )
+                            );
+
+                    Intent i = new Intent(context, BLEService.class);
+
+                    i.putExtra(Constants.BLE_SERVICE_INTENT_EXTRA_MAC, botMAC);
+
+                    context.startService(i);
+                }
 
                 NotificationManagerCompat notificationManager =
                     NotificationManagerCompat.from(context);
@@ -123,13 +160,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
                     notificationUniqueId.getAndIncrement(),
                     builderNotification.build()
                 );
-
-                Intent i= new Intent(context, BLEService.class);
-                i.putExtra(Constants.BLE_SERVICE_INTENT_EXTRA_MAC, botMAC);
-
-                context.startService(i);
             }
-            else if (keyMatched && !isEnabled) {
+            else if (keyMatched) {
                 NotificationCompat.Builder builderNotification =
                     new NotificationCompat.Builder(context, Constants.NOTIFICATIONS_CHANNEL_ID)
                         .setAutoCancel(true)
