@@ -1,6 +1,7 @@
 <p align="center">
     <img
         width="30%"
+        alt="Blue Switch Bots Logo"
         style="text-align: center;"
         src=".github/res/img/blue_switch_bots.png" />
 </p>
