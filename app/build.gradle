@@ -10,8 +10,8 @@ android {
         applicationId "com.iia.blueswitchbots"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 1
-        versionName "v1.0-beta"
+        versionCode 2
+        versionName "v1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
     }
